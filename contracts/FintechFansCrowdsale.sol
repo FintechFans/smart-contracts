@@ -29,7 +29,7 @@ contract FintechFansCrowdsale is RefundableCrowdsale, CappedCrowdsale {
         address _foundersWallet,
         uint256 _goal,
         uint256 _cap,
-        FintechFansCoin _tokenContract
+        FintechFansCoin _token
         )
         Crowdsale(_startTime, _endTime, _rate, _wallet)
         RefundableCrowdsale(_goal)
@@ -38,7 +38,7 @@ contract FintechFansCrowdsale is RefundableCrowdsale, CappedCrowdsale {
         require(_goal < _cap);
 
         foundersWallet = _foundersWallet;
-        tokenContract = _tokenContract;
+        token = _token;
     }
 
 

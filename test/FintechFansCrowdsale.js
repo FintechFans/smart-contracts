@@ -39,6 +39,11 @@ contract('FintechFansCrowdsale', function(accounts) {
         await this.token.transferOwnership(this.crowdsale.address);
     });
 
+    it('should be token owner', async function () {
+        const owner = await this.token.owner();
+        owner.should.equal(this.crowdsale.address);
+    });
+
     describe('creating a valid crowdsale', async function() {
         it('should fail if cap lower than goal', async function() {
             await FintechFansCrowdsale.new(this.startTime, this.endTime, rate, accounts[0], accounts[1], goal, 1, this.token.address).should.be.rejectedWith(EVMThrow);
@@ -68,8 +73,8 @@ contract('FintechFansCrowdsale', function(accounts) {
         it('minted tokens when something was sold', async function() {
             await this.crowdsale.send(new BigNumber(1000));
 
-            let totalSupply = await this.token.totalSupply();
-            const expectedTotalSupply = new BigNumber(0);
+            let totalSupply = await this.token.totalSupply.call();
+            const expectedTotalSupply = new BigNumber(1000 * 2.50 * rate);
             totalSupply.should.be.bignumber.equal(expectedTotalSupply);
         });
 
@@ -84,17 +89,17 @@ contract('FintechFansCrowdsale', function(accounts) {
             // const expectedTotalSupply = new BigNumber(42);
             // totalSupply.should.be.bignumber.equal(expectedTotalSupply);
 
-            const balance = await this.token.balanceOf(accounts[2]);
-            const balance_fintech_fans = await this.token.balanceOf(accounts[0]);
-            const balance_founders = await this.token.balanceOf(accounts[1]);
+            const balance = await this.token.balanceOf.call(accounts[2]);
+            const balance_fintech_fans = await this.token.balanceOf.call(accounts[0]);
+            const balance_founders = await this.token.balanceOf.call(accounts[1]);
             console.log(balance.valueOf(), balance_fintech_fans.valueOf(), balance_founders.valueOf());
 
-            balance.should.be.bignumber.equal(new BigNumber(1000 * 1.25));
+            balance.should.be.bignumber.equal(new BigNumber(1000 * 1.25 * rate));
 
-            balance_fintech_fans.should.be.bignumber.equal(new BigNumber(1000 * 0.8));
+            balance_fintech_fans.should.be.bignumber.equal(new BigNumber(1000 * 1.25 * 0.8 * rate));
 
 
-            balance_founders.should.be.bignumber.equal(new BigNumber(1000 * 0.2));
+            balance_founders.should.be.bignumber.equal(new BigNumber(1000 * 1.25 * 0.2 * rate));
         });
     });
 });
