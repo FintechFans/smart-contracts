@@ -3,7 +3,7 @@ pragma solidity ^0.4.11;
    Interface to implement an ERC20-compatible Token.
  */
 contract ERC20TokenInterface{
-    function totalSupply() constant returns (uint totalSupply);
+    function totalSupply() constant returns (uint theTotalSupply);
     function balanceOf(address _owner) constant returns (uint balance);
     function transfer(address _to, uint _value) returns (bool success);
     function transferFrom(address _from, address _to, uint _value) returns (bool success);

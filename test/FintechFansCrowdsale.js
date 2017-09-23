@@ -15,9 +15,10 @@ const FintechFansCrowdsale = artifacts.require("FintechFansCrowdsale");
 
 contract('FintechFansCrowdsale', function([_, wallet]) {
     const rate = new BigNumber(1000);
-
+    
+    const goal = ether(100);
     const cap = ether(300);
-    const lessThanCap = ether(60);
+    const lessThanCap = ether(160);
 
     before(async function() {
         // Requirement to correctly read "now" as interpreted by at least testrpc.
@@ -28,8 +29,8 @@ contract('FintechFansCrowdsale', function([_, wallet]) {
         this.startTime = latestTime() + duration.weeks(1);
         this.endTime = this.startTime + duration.weeks(1);
 
-        this.crowdsale = await FintechFansCrowdsale.new(this.startTime, this.endTime, rate, wallet, wallet, cap);
-        this.token = FintechFansCoin.at(await this.crowdsale.token());
+        this.crowdsale = await FintechFansCrowdsale.new(this.startTime, this.endTime, rate, wallet, /*wallet, goal,*/ cap);
+        // this.token = FintechFansCoin.at(await this.crowdsale.token());
     });
 
     describe('creating a valid crowdsale', async function() {
