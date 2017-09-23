@@ -16,10 +16,10 @@ const FintechFansCoin = artifacts.require("FintechFansCoin");
 
 contract('FintechFansCrowdsale', function([_, wallet]) {
     const rate = new BigNumber(1000);
-    
-    const goal = ether(100);
-    const cap = ether(300);
-    const lessThanCap = ether(160);
+
+    const goal = ether(10);
+    const cap = ether(30);
+    const lessThanCap = ether(16);
 
     before(async function() {
         // Requirement to correctly read "now" as interpreted by at least testrpc.
@@ -35,8 +35,19 @@ contract('FintechFansCrowdsale', function([_, wallet]) {
     });
 
     describe('creating a valid crowdsale', async function() {
-        it('should fail if zero cap', async function() {
-            await FintechFansCrowdsale.new(this.startTime, this.endTime, rate, wallet, 0).should.be.rejectedWith(EVMThrow);
+        it('should fail if cap lower than goal', async function() {
+            await FintechFansCrowdsale.new(this.startTime, this.endTime, rate, wallet, wallet, goal, 1, this.token.address).should.be.rejectedWith(EVMThrow);
+        });
+    });
+
+    describe("accepting payments", async function() {
+        beforeEach(async function() {
+            await increaseTimeTo(this.startTime);
+        });
+
+        it('Should accept payments within cap', async function(){
+            await this.crowdsale.send(cap.minus(lessThanCap)).should.be.fulfilled;
+            await this.crowdsale.send(lessThanCap).should.be.fulfilled;
         });
     });
 });
