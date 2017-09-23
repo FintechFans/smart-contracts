@@ -32,10 +32,14 @@ contract FintechFansCrowdsale is Ownable, RefundableCrowdsale, CappedCrowdsale, 
     )
         Crowdsale(_startTime, _endTime, rate, _multisigWallet)
         RefundableCrowdsale(_goal)
-        CappedCrowdsale(5000000 * tokenDecimals * _rate)
+        CappedCrowdsale(/*5000000 * tokenDecimals * _rate*/ _cap)
     {
         foundersWallet = _foundersWallet;
     }
+
+    /*
+      TODO override createTokenContract()!
+     */
 
     /*
       Overridden version of Crowdsale.buyTokens because:
@@ -50,7 +54,7 @@ contract FintechFansCrowdsale is Ownable, RefundableCrowdsale, CappedCrowdsale, 
 
         // calculate token amount to be created
         uint256 tokens = weiAmount.mul(rate);
-        tokens = tokens.mul(currentBonusRate());
+        tokens = tokens.mul(currentBonusRate()).div(100);
 
         // update state
         weiRaised = weiRaised.add(weiAmount);
@@ -68,12 +72,15 @@ contract FintechFansCrowdsale is Ownable, RefundableCrowdsale, CappedCrowdsale, 
         forwardFunds();
   }
 
+    /*
+      Returns a fixed-size number that is 100 * the bonus amount.
+     */
     function currentBonusRate() public returns (uint) {
         /* TODO check how `rate' is used. */
-        /* if(weiRaised < (1000000 * tokenDecimals) / rate) return 1.25; // 20% discount */
-        /* if(weiRaised < (2000000 * tokenDecimals) / rate) return 1.1764705882352942; // 15% discount */
-        /* if(weiRaised < (4000000 * tokenDecimals) / rate) return 1.1111111111111112; // 10% discount */
-        /* if(weiRaised < (5000000 * tokenDecimals) / rate) return 1.0526315789473684; // 5% discount */
-        return 1; // Should never happen, as 5 million is hard cap.
+        if(weiRaised < (1000000 * tokenDecimals) / rate) return 125/*.25*/; // 20% discount
+        if(weiRaised < (2000000 * tokenDecimals) / rate) return 118/*.1764705882352942*/; // 15% discount
+        if(weiRaised < (4000000 * tokenDecimals) / rate) return 111/*.1111111111111112*/; // 10% discount
+        if(weiRaised < (5000000 * tokenDecimals) / rate) return 105/*.0526315789473684*/; // 5% discount
+        return 100; // Should never happen, as 5 million is hard cap.
     }
 }

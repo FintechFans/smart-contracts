@@ -1,0 +1,38 @@
+This file is a specification of the Smart Contracts that are required to finish the ICO.
+They are _not_ about the contracts we will build once the project has been funded, that will happen at a later date.
+* Overview:
+** Token contract
+*** ERC20 interface
+*** ZenoToken
+*** Mintable, until Admin turns minting off (can never be turned on again).
+**** But ONLY from known address (ICO-contract's address).
+**** Note: Since both contracts need to know each-other, Admin needs to tell Token Contract address of ICO-contract.
+** ICO-contract
+*** Fixed start time and end time. (in block numbers)
+*** Knows how much tokens to generate for sent ether during what periods.
+*** Knows which addresses to send tokens to:
+**** Part to FintechFans
+**** Part to Founders' Token Vault
+**** Part to Ether sender.
+*** When ICO succeeds(time limit over, minimum reached), allows FintechFans multisig wallet to withdraw stored Ether.
+*** Knows price Ether <-> Token.
+*** Contains pause function so Admins can prematurely close the contract.
+*** When ICO fails (time limit over without minimum goal reached), senders can withdraw their Ether.
+*** When ICO fails (admin prematurely explicitly closes it as safeguard), senders can withdraw their Ether.
+*** Allows people to send Ether to it, as long as time between start and end time.
+** Founders' Token Vault(s)
+*** Closed until enough block numbers passed.
+*** Afterwards, owner of vault can withdraw.
+*** Give 'owner' of Token Vault the possibility to appoint new owner(?)
+**** Would allow selling in one batch.
+**** Or maybe only allow this action once, so we can do it once, once we know the ethereum address of the founder?
+
+
+Process:
+
+1. Deploy Token Contract
+2. As admin, manually mint Presale tokens.
+3. Deploy Crowdsale Contract.
+4. Make Crowdsale Contract owner of Token Contract.
+5. ???
+6. PROFIT
