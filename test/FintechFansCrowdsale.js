@@ -79,27 +79,22 @@ contract('FintechFansCrowdsale', function(accounts) {
         });
 
         it('should mint given amount of tokens to proper addresses', async function(){
-            const result = await this.crowdsale.buyTokens(accounts[2], {value: new BigNumber(1000), from: accounts[2]});
+            const eth = 1000;
+            const expected_tokens = eth * rate;
+            const expected_tokens_including_bonus = expected_tokens * 1.25;
+            const result = await this.crowdsale.buyTokens(accounts[2], {value: new BigNumber(eth), from: accounts[2]});
 
-            console.log(result);
-            console.log(result.logs);
-
-            // TODO Why does this not work?
-            // let totalSupply = await this.token.totalSupply();
-            // const expectedTotalSupply = new BigNumber(42);
-            // totalSupply.should.be.bignumber.equal(expectedTotalSupply);
+            let totalSupply = await this.token.totalSupply();
+            const expectedTotalSupply = new BigNumber(expected_tokens_including_bonus * 2);
+            totalSupply.should.be.bignumber.equal(expectedTotalSupply);
 
             const balance = await this.token.balanceOf.call(accounts[2]);
             const balance_fintech_fans = await this.token.balanceOf.call(accounts[0]);
             const balance_founders = await this.token.balanceOf.call(accounts[1]);
-            console.log(balance.valueOf(), balance_fintech_fans.valueOf(), balance_founders.valueOf());
 
-            balance.should.be.bignumber.equal(new BigNumber(1000 * 1.25 * rate));
-
-            balance_fintech_fans.should.be.bignumber.equal(new BigNumber(1000 * 1.25 * 0.8 * rate));
-
-
-            balance_founders.should.be.bignumber.equal(new BigNumber(1000 * 1.25 * 0.2 * rate));
+            balance.should.be.bignumber.equal(new BigNumber(expected_tokens_including_bonus));
+            balance_fintech_fans.should.be.bignumber.equal(new BigNumber(expected_tokens_including_bonus * 0.8));
+            balance_founders.should.be.bignumber.equal(new BigNumber(expected_tokens_including_bonus * 0.2));
         });
     });
 });
