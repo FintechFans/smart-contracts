@@ -4,6 +4,7 @@ import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 
 /* Restrict certain actions to only the contract's owner: */
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
+import 'zeppelin-solidity/contracts/lifecycle/Pausable.sol';
 
 /* Restrict certain actions to only the contract's owner: */
 import 'zeppelin-solidity/contracts/crowdsale/CappedCrowdsale.sol';
@@ -12,10 +13,7 @@ import 'zeppelin-solidity/contracts/crowdsale/RefundableCrowdsale.sol';
 /* Reference to the FintechFansCoin contract, whose tokens are sold. */
 import './FintechFansCoin.sol';
 
-contract Pausable {
-}
-
-contract FintechFansCrowdsale is RefundableCrowdsale, CappedCrowdsale {
+contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale {
     uint256 tokenDecimals = 18;
 
     FintechFansCoin tokenContract;
@@ -41,15 +39,21 @@ contract FintechFansCrowdsale is RefundableCrowdsale, CappedCrowdsale {
         token = _token;
     }
 
-
-/*       TODO override createTokenContract()! */
+    /*
+      Overrides Crowdsale.createTokenContract,
+      because the FintechFansCrowdsale uses an already-deployed
+      token, so there is no need to internally deploy a contract.
+     */
+    function createTokenContract() internal returns (MintableToken) {
+        return MintableToken(0x0);
+  }
 
     /*
       Overridden version of Crowdsale.buyTokens because:
       - The Wei->FFC rate depends on how many tokens have already been sold.
       - Also mint tokens sent to FintechFans and the Founders at the same time.
     */
-    function buyTokens(address beneficiary) public payable {
+    function buyTokens(address beneficiary) public payable whenNotPaused {
         require(beneficiary != 0x0);
         require(validPurchase());
 

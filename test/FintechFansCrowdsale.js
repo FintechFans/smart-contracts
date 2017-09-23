@@ -59,6 +59,11 @@ contract('FintechFansCrowdsale', function(accounts) {
             await this.crowdsale.send(cap.minus(lessThanCap)).should.be.fulfilled;
             await this.crowdsale.send(lessThanCap).should.be.fulfilled;
         });
+
+        it('does not accept payments when paused', async function() {
+            await this.crowdsale.pause().should.be.fulfilled;
+            await this.crowdsale.send(cap.minus(lessThanCap)).should.be.rejectedWith(EVMThrow);
+        });
     });
 
     describe("minting tokens", async function() {
