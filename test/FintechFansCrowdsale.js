@@ -31,7 +31,7 @@ contract('FintechFansCrowdsale', function([_, wallet]) {
         this.endTime = this.startTime + duration.weeks(1);
 
         this.token = await FintechFansCoin.new();
-        this.crowdsale = await FintechFansCrowdsale.new(this.startTime, this.endTime, rate, wallet, wallet, /* goal,*/ cap, this.token.address);
+        this.crowdsale = await FintechFansCrowdsale.new(this.startTime, this.endTime, rate, wallet, wallet, goal, cap, this.token.address);
     });
 
     describe('creating a valid crowdsale', async function() {

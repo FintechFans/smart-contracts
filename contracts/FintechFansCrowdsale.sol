@@ -15,7 +15,7 @@ import './FintechFansCoin.sol';
 contract Pausable {
 }
 
-contract FintechFansCrowdsale is CappedCrowdsale {
+contract FintechFansCrowdsale is RefundableCrowdsale, CappedCrowdsale {
     FintechFansCoin tokenContract;
     address public foundersWallet;
 
@@ -25,10 +25,12 @@ contract FintechFansCrowdsale is CappedCrowdsale {
         uint256 _rate,
         address _wallet,
         address _foundersWallet,
+        uint256 _goal,
         uint256 _cap,
         FintechFansCoin _tokenContract
         )
         Crowdsale(_startTime, _endTime, _rate, _wallet)
+        RefundableCrowdsale(_goal)
         CappedCrowdsale(_cap)
     {
         foundersWallet = _foundersWallet;
