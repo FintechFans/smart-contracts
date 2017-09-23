@@ -17,21 +17,23 @@ const FintechFansCoin = artifacts.require("FintechFansCoin");
 contract('FintechFansCrowdsale', function([_, wallet]) {
     const rate = new BigNumber(1000);
 
-    const goal = ether(10);
-    const cap = ether(30);
-    const lessThanCap = ether(16);
+    const goal = new BigNumber(10);
+    const cap = new BigNumber(30);
+    const lessThanCap = new BigNumber(16);
 
     before(async function() {
         // Requirement to correctly read "now" as interpreted by at least testrpc.
         await advanceBlock();
     });
-
+    
     beforeEach(async function() {
         this.startTime = latestTime() + duration.weeks(1);
         this.endTime = this.startTime + duration.weeks(1);
 
         this.token = await FintechFansCoin.new();
         this.crowdsale = await FintechFansCrowdsale.new(this.startTime, this.endTime, rate, wallet, wallet, goal, cap, this.token.address);
+
+        await this.token.transferOwnership(this.crowdsale.address);
     });
 
     describe('creating a valid crowdsale', async function() {
@@ -49,5 +51,9 @@ contract('FintechFansCrowdsale', function([_, wallet]) {
             await this.crowdsale.send(cap.minus(lessThanCap)).should.be.fulfilled;
             await this.crowdsale.send(lessThanCap).should.be.fulfilled;
         });
+    });
+
+    describe("minting tokens", async function() {
+        
     });
 });
