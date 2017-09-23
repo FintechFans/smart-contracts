@@ -16,17 +16,23 @@ contract Pausable {
 }
 
 contract FintechFansCrowdsale is CappedCrowdsale {
+    FintechFansCoin tokenContract;
+    address public foundersWallet;
 
     function FintechFansCrowdsale (
         uint256 _startTime,
         uint256 _endTime,
         uint256 _rate,
         address _wallet,
-        uint256 _cap
+        address _foundersWallet,
+        uint256 _cap,
+        FintechFansCoin _tokenContract
         )
         Crowdsale(_startTime, _endTime, _rate, _wallet)
         CappedCrowdsale(_cap)
     {
+        foundersWallet = _foundersWallet;
+        tokenContract = _tokenContract;
     }
 
 }

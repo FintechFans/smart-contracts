@@ -12,6 +12,7 @@ require('chai')
     .should();
 
 const FintechFansCrowdsale = artifacts.require("FintechFansCrowdsale");
+const FintechFansCoin = artifacts.require("FintechFansCoin");
 
 contract('FintechFansCrowdsale', function([_, wallet]) {
     const rate = new BigNumber(1000);
@@ -29,8 +30,8 @@ contract('FintechFansCrowdsale', function([_, wallet]) {
         this.startTime = latestTime() + duration.weeks(1);
         this.endTime = this.startTime + duration.weeks(1);
 
-        this.crowdsale = await FintechFansCrowdsale.new(this.startTime, this.endTime, rate, wallet, /*wallet, goal,*/ cap);
-        // this.token = FintechFansCoin.at(await this.crowdsale.token());
+        this.token = await FintechFansCoin.new();
+        this.crowdsale = await FintechFansCrowdsale.new(this.startTime, this.endTime, rate, wallet, wallet, /* goal,*/ cap, this.token.address);
     });
 
     describe('creating a valid crowdsale', async function() {
