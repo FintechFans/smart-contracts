@@ -14,7 +14,7 @@ contract ZenoTokenRecipient { function receiveApproval(address from, uint256 val
 
    ALL RIGHTS RESERVED by Wiebe-Marten Wijnja
  */
-contract ZenoToken is HumanERC20TokenInterface("ZenoMarketToken", "☡", 27) {
+contract ZenoToken is HumanERC20TokenInterface {
     /* Public variables of the token */
     string public standard = 'ZenoToken v0.2.0';
     uint256 theTotalSupply;
@@ -37,7 +37,9 @@ contract ZenoToken is HumanERC20TokenInterface("ZenoMarketToken", "☡", 27) {
     /**
        @notice Initializes contract with initial supply tokens to the creator of the contract
      */
-    function ZenoToken(uint256 totalStartingSupply) {
+    function ZenoToken(string name, string symbol, uint8 decimals, uint256 totalStartingSupply)
+        HumanERC20TokenInterface(name, symbol, decimals)
+    {
         theTotalSupply = totalStartingSupply;
         raw_balances[msg.sender] = currentWhole;
     }

@@ -14,16 +14,32 @@ const ZenoToken = artifacts.require("./ZenoToken.sol");
 contract('ZenoToken', function(accounts) {
     before(function(){
         this.total_supply = 1e36;
-    })
+    });
 
     beforeEach(async function() {
-        this.instance = await ZenoToken.new(this.total_supply);
+        this.instance = await ZenoToken.new("MyZenoToken", "ZT", 18, this.total_supply);
+    });
+
+    it("Should return the set name", async function() {
+        let name = await this.instance.name();
+        name.should.be.equal("MyZenoToken");
+    });
+
+    it("Should return the set symbol", async function() {
+        let name = await this.instance.symbol();
+        name.should.be.equal("ZT");
+    });
+
+    it("Should return the set decimals amount", async function() {
+        let name = await this.instance.decimals();
+        name.should.be.bignumber.equal(18);
     });
 
     it("should put 1e36 ZenoToken in the creator's account", async function() {
         let balance = await this.instance.balanceOf(accounts[0]);
         balance.should.be.bignumber.equal(this.total_supply);
     });
+
     it("should transfer tokens correctly", async function() {
 
         // Get initial balances of first and second account.
