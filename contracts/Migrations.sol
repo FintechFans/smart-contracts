@@ -1,3 +1,4 @@
+// Truffle migrations are not used by FintechFans.
 pragma solidity ^0.4.4;
 
 contract Migrations {
