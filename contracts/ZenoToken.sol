@@ -1,6 +1,6 @@
 pragma solidity ^0.4.11;
 
-import "./math/SafeMath.sol";
+import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 import "./HumanERC20TokenInterface.sol";
 
 contract ZenoTokenRecipient { function receiveApproval(address from, uint256 value, address token, bytes _extraData); }
