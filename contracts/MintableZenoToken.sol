@@ -3,6 +3,8 @@ pragma solidity ^0.4.11;
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 import "zeppelin-solidity/contracts/ownership/Ownable.sol";
 
+import "./ZenoToken.sol";
+
 /**
  * @title Mintable variant of the ZenoToken
  * @dev Alters the ZenoToken contract to allow its owner to mint it, until minting is set as 'finished'.
@@ -44,11 +46,11 @@ contract MintableZenoToken is Ownable, ZenoToken {
      * @param _amount The amount of tokens to mint.
      * @return A boolean that indicates if the operation was successful.
      */
-    function mint(address _to, uint256 _amount) onlyOwner canMint public returns bool {
+    function mint(address _to, uint256 _amount) onlyOwner canMint public returns (bool) {
         uint256 raw_amount = balance2raw(_amount);
-        currentWhole.add(raw_amount);
-        theTotalSupply.add(_amount);
-        raw_balances[_to].add(raw_amount);
+        currentWhole = SafeMath.add(currentWhole, raw_amount);
+        theTotalSupply = SafeMath.add(theTotalSupply, _amount);
+        raw_balances[_to] = SafeMath.add(raw_balances[_to], raw_amount);
 
         return true;
     }
