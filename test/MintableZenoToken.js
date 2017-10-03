@@ -18,7 +18,7 @@ contract('MintableZenoToken', function(accounts) {
     });
 
     beforeEach(async function() {
-        this.instance = await ZenoToken.new("MyZenoToken", "MZT", 18, this.total_supply);
+        this.instance = await MintableZenoToken.new("MyZenoToken", "MZT", 18, this.total_supply);
     });
 
     describe("Minting", function(){
@@ -28,13 +28,13 @@ contract('MintableZenoToken', function(accounts) {
             let amount = 100;
 
             let mintingFinished = await this.instance.mintingFinished();
-            assert(mintingFinished).to.equal(false);
+            mintingFinished.should.be.false;
 
             await this.instance.mint(account_two, amount, {from: account_one});
             await this.instance.finishMinting();
             let mintingFinishedAfter = await this.instance.mintingFinished();
 
-            assert(mintingFinishedAfter).to.equal(true);
+            mintingFinishedAfter.should.be.true;
         });
 
         it("Properly mints when mintable", async function(){
@@ -55,8 +55,11 @@ contract('MintableZenoToken', function(accounts) {
             let account_two = accounts[1];
             let amount = 100;
 
+            let account_two_starting_balance = await this.instance.balanceOf(account_two);
+
             await this.instance.finishMinting();
-            await this.instance.mint(account_two, amount, {from: account_one});
+            await this.instance.mint(account_two, amount, {from: account_one}).should.be.rejectedWith(EVMThrow);
+            let account_two_ending_balance = await this.instance.balanceOf(account_two);
 
             account_two_ending_balance.toNumber().should.be.equal(account_two_starting_balance.toNumber());
         });
