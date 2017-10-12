@@ -10,13 +10,13 @@ import 'zeppelin-solidity/contracts/lifecycle/Pausable.sol';
 import 'zeppelin-solidity/contracts/crowdsale/CappedCrowdsale.sol';
 import 'zeppelin-solidity/contracts/crowdsale/RefundableCrowdsale.sol';
 
-/* Reference to the FintechFansCoin contract, whose tokens are sold. */
-import './FintechFansCoin.sol';
+/* Reference to the FintechCoin contract, whose tokens are sold. */
+import './FintechCoin.sol';
 
 contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale {
     uint256 tokenDecimals = 18;
 
-    FintechFansCoin tokenContract;
+    FintechCoin tokenContract;
     address public foundersWallet;
 
     function FintechFansCrowdsale (
@@ -27,7 +27,7 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
         address _foundersWallet,
         uint256 _goal,
         uint256 _cap,
-        FintechFansCoin _token
+        FintechCoin _token
         )
         Crowdsale(_startTime, _endTime, _rate, _wallet)
         RefundableCrowdsale(_goal)

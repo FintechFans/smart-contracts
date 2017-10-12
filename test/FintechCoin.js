@@ -18,7 +18,7 @@ contract('FintechCoin', function(accounts) {
     });
 
     beforeEach(async function() {
-        this.instance = await FintechCoin.new("FintechCoin", "FINC", 18, this.total_supply);
+        this.instance = await FintechCoin.new();
     });
 
     describe("Minting", function(){

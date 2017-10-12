@@ -17,9 +17,4 @@ import "zeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./ApprovedBurnableToken.sol";
 
 contract FintechCoin is Ownable, MintableToken, ApprovedBurnableToken {
-    uint8 public constant contractVersion = 1;
-
-    string public constant name = "FintechCoin";
-    string public constant symbol = "FINC";
-    uint8 public constant decimals = 18;
 }

@@ -14,7 +14,7 @@ require('chai')
     .should();
 
 const FintechFansCrowdsale = artifacts.require("FintechFansCrowdsale");
-const FintechFansCoin = artifacts.require("FintechFansCoin");
+const FintechCoin = artifacts.require("FintechCoin");
 
 contract('FintechFansCrowdsale', function(accounts) {
     const rate = new BigNumber(1000);
@@ -32,7 +32,7 @@ contract('FintechFansCrowdsale', function(accounts) {
         this.startTime = latestTime() + duration.weeks(1);
         this.endTime = this.startTime + duration.weeks(1);
 
-        this.token = await FintechFansCoin.new();
+        this.token = await FintechCoin.new();
         // console.log(this.token);
         this.crowdsale = await FintechFansCrowdsale.new(this.startTime, this.endTime, rate, accounts[0], accounts[1], goal, cap, this.token.address);
 
