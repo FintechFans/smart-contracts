@@ -27,7 +27,7 @@ contract('FintechFansCrowdsale', function(accounts) {
         // Requirement to correctly read "now" as interpreted by at least testrpc.
         await advanceBlock();
     });
- 
+
     beforeEach(async function() {
         this.startTime = latestTime() + duration.weeks(1);
         this.endTime = this.startTime + duration.weeks(1);

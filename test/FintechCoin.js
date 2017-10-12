@@ -13,12 +13,10 @@ require('chai')
 const FintechCoin = artifacts.require("./FintechCoin.sol");
 
 contract('FintechCoin', function(accounts) {
-    before(function(){
-        this.total_supply = 1e36;
-    });
+    let token;
 
     beforeEach(async function() {
-        this.instance = await FintechCoin.new();
+        token = await FintechCoin.new();
     });
 
     describe("Minting", function(){
@@ -27,12 +25,12 @@ contract('FintechCoin', function(accounts) {
             let account_two = accounts[1];
             let amount = 100;
 
-            let mintingFinished = await this.instance.mintingFinished();
+            let mintingFinished = await token.mintingFinished();
             mintingFinished.should.be.false;
 
-            await this.instance.mint(account_two, amount, {from: account_one});
-            await this.instance.finishMinting();
-            let mintingFinishedAfter = await this.instance.mintingFinished();
+            await token.mint(account_two, amount, {from: account_one});
+            await token.finishMinting();
+            let mintingFinishedAfter = await token.mintingFinished();
 
             mintingFinishedAfter.should.be.true;
         });
@@ -42,10 +40,10 @@ contract('FintechCoin', function(accounts) {
             let account_two = accounts[1];
             let amount = 100;
 
-            let account_two_starting_balance = await this.instance.balanceOf(account_two);
+            let account_two_starting_balance = await token.balanceOf(account_two);
 
-            await this.instance.mint(account_two, amount, {from: account_one});
-            let account_two_ending_balance = await this.instance.balanceOf(account_two);
+            await token.mint(account_two, amount, {from: account_one});
+            let account_two_ending_balance = await token.balanceOf(account_two);
 
             account_two_ending_balance.toNumber().should.be.equal(account_two_starting_balance.toNumber() + amount);
         });
@@ -55,11 +53,11 @@ contract('FintechCoin', function(accounts) {
             let account_two = accounts[1];
             let amount = 100;
 
-            let account_two_starting_balance = await this.instance.balanceOf(account_two);
+            let account_two_starting_balance = await token.balanceOf(account_two);
 
-            await this.instance.finishMinting();
-            await this.instance.mint(account_two, amount, {from: account_one}).should.be.rejectedWith(EVMThrow);
-            let account_two_ending_balance = await this.instance.balanceOf(account_two);
+            await token.finishMinting();
+            await token.mint(account_two, amount, {from: account_one}).should.be.rejectedWith(EVMThrow);
+            let account_two_ending_balance = await token.balanceOf(account_two);
 
             account_two_ending_balance.toNumber().should.be.equal(account_two_starting_balance.toNumber());
         });
