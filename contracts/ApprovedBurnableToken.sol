@@ -10,7 +10,7 @@ import "zeppelin-solidity/contracts/token/BurnableToken.sol";
 contract ApprovedBurnableToken is BurnableToken {
 
     // List whom allows whom to irrevocably spend so much tokens from their balance.
-    mapping (address => mapping (address => uint256)) internal allowedBurning;
+    /* mapping (address => mapping (address => uint256)) internal allowed; */
 
     event BurnFrom(address indexed owner, // The address whose tokens were burned.
                   address indexed burner, // The address that executed the `burnFrom` call
@@ -31,13 +31,13 @@ contract ApprovedBurnableToken is BurnableToken {
     function burnFrom(address _owner, uint256 _value) public {
         require(_value > 0);
         require(_value <= balances[_owner]);
-        require(_value <= allowedBurning[_owner][msg.sender]);
+        require(_value <= allowed[_owner][msg.sender]);
         // no need to require value <= totalSupply, since that would imply the
         // sender's balance is greater than the totalSupply, which *should* be an assertion failure
 
         address burner = msg.sender;
         balances[_owner] = balances[_owner].sub(_value);
-        allowedBurning[_owner][burner] = allowedBurning[_owner][burner].sub(_value);
+        allowed[_owner][burner] = allowed[_owner][burner].sub(_value);
         totalSupply = totalSupply.sub(_value);
 
         BurnFrom(_owner, burner, _value);
@@ -58,32 +58,32 @@ contract ApprovedBurnableToken is BurnableToken {
     /*  * @param _value The amount of tokens to be spent. */
     /*  *\/ */
     /* function approveBurn(address _burner, uint256 _value) public returns (bool) { */
-    /*     allowedBurning[msg.sender][_burner] = _value; */
+    /*     allowed[msg.sender][_burner] = _value; */
     /*     BurnApproval(msg.sender, _burner, _value); */
     /*     return true; */
     /* } */
 
     /* /\** */
-    /*  * approve might be called when allowedBurning[_burner] == 0. To increment */
+    /*  * approve might be called when allowed[_burner] == 0. To increment */
     /*  * allowed value is better to use this function to avoid two calls (and wait until */
     /*  * the first transaction is mined) */
     /*  * */
     /*  * Adapted from MonolithDAO Token.sol */
     /*  *\/ */
     /* function increaseBurnApproval (address _burner, uint _addedValue) public returns (bool success) { */
-    /*     allowedBurning[msg.sender][_burner] = allowedBurning[msg.sender][_burner].add(_addedValue); */
-    /*     Approval(msg.sender, _burner, allowedBurning[msg.sender][_burner]); */
+    /*     allowed[msg.sender][_burner] = allowed[msg.sender][_burner].add(_addedValue); */
+    /*     Approval(msg.sender, _burner, allowed[msg.sender][_burner]); */
     /*     return true; */
     /* } */
 
     /* function decreaseBurnApproval (address _burner, uint _subtractedValue) public returns (bool success) { */
-    /*     uint oldValue = allowedBurning[msg.sender][_burner]; */
+    /*     uint oldValue = allowed[msg.sender][_burner]; */
     /*     if (_subtractedValue > oldValue) { */
-    /*         allowedBurning[msg.sender][_burner] = 0; */
+    /*         allowed[msg.sender][_burner] = 0; */
     /*     } else { */
-    /*         allowedBurning[msg.sender][_burner] = oldValue.sub(_subtractedValue); */
+    /*         allowed[msg.sender][_burner] = oldValue.sub(_subtractedValue); */
     /*     } */
-    /*     BurnApproval(msg.sender, _burner, allowedBurning[msg.sender][_burner]); */
+    /*     BurnApproval(msg.sender, _burner, allowed[msg.sender][_burner]); */
     /*     return true; */
     /* } */
 }

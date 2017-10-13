@@ -34,7 +34,7 @@ contract('FintechFansCrowdsale', function(accounts) {
 
         this.token = await FintechCoin.new();
         // console.log(this.token);
-        this.crowdsale = await FintechFansCrowdsale.new(this.startTime, this.endTime, rate, accounts[0], accounts[1], goal, cap, this.token.address);
+        this.crowdsale = await FintechFansCrowdsale.new(this.startTime, this.endTime, rate, accounts[0], accounts[1], goal, cap, this.token.address, 0);
 
         await this.token.transferOwnership(this.crowdsale.address);
     });

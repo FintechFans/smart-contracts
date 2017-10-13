@@ -18,6 +18,7 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
 
     FintechCoin tokenContract;
     address public foundersWallet;
+    uint256 public weiRaisedDuringPresale;
 
     function FintechFansCrowdsale (
         uint256 _startTime,
@@ -27,7 +28,8 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
         address _foundersWallet,
         uint256 _goal,
         uint256 _cap,
-        FintechCoin _token
+        FintechCoin _token,
+        uint256 _weiRaisedDuringPresale
         )
         Crowdsale(_startTime, _endTime, _rate, _wallet)
         RefundableCrowdsale(_goal)
@@ -37,6 +39,7 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
 
         foundersWallet = _foundersWallet;
         token = _token;
+        weiRaised = weiRaisedDuringPresale = _weiRaisedDuringPresale;
     }
 
     /*
@@ -84,11 +87,11 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
      */
     function currentBonusRate() public returns (uint) {
         /* TODO check how `rate' is used. */
-        if(weiRaised < (1000000 * tokenDecimals) / rate) return 125/*.25*/; // 20% discount
-        if(weiRaised < (2000000 * tokenDecimals) / rate) return 118/*.1764705882352942*/; // 15% discount
-        if(weiRaised < (4000000 * tokenDecimals) / rate) return 111/*.1111111111111112*/; // 10% discount
-        if(weiRaised < (5000000 * tokenDecimals) / rate) return 105/*.0526315789473684*/; // 5% discount
-        return 100; // Should never happen, as 5 million is hard cap.
+        if(weiRaised < (2000000 * tokenDecimals) / rate) return 125/*.25*/; // 20% discount
+        if(weiRaised < (4000000 * tokenDecimals) / rate) return 118/*.1764705882352942*/; // 15% discount
+        if(weiRaised < (6000000 * tokenDecimals) / rate) return 111/*.1111111111111112*/; // 10% discount
+        if(weiRaised < (9000000 * tokenDecimals) / rate) return 105/*.0526315789473684*/; // 5% discount
+        return 100;
     }
 
 
