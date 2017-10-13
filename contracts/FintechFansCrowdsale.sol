@@ -18,6 +18,7 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
 
     FintechCoin tokenContract;
     address public foundersWallet;
+    address public bountiesWallet;
     uint256 public weiRaisedDuringPresale;
 
     function FintechFansCrowdsale (
@@ -25,6 +26,7 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
         uint256 _endTime,
         uint256 _rate,
         address _wallet,
+        address _bountiesWallet,
         address _foundersWallet,
         uint256 _goal,
         uint256 _cap,
@@ -37,6 +39,7 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
     {
         require(_goal < _cap);
 
+        bountiesWallet = _bountiesWallet;
         foundersWallet = _foundersWallet;
         token = _token;
         weiRaised = weiRaisedDuringPresale = _weiRaisedDuringPresale;
@@ -63,23 +66,39 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
         uint256 weiAmount = msg.value;
 
         // calculate token amount to be created
-        uint256 tokens = weiAmount.mul(rate);
-        tokens = tokens.mul(currentBonusRate()).div(100);
+        uint256 purchasedTokens = weiAmount.mul(rate);
+        purchasedTokens = purchasedTokens.mul(currentBonusRate()).div(100);
 
         // update state
         weiRaised = weiRaised.add(weiAmount);
 
         // Mint tokens for beneficiary
-        token.mint(beneficiary, tokens);
-        TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
+        token.mint(beneficiary, purchasedTokens);
+        TokenPurchase(msg.sender, beneficiary, weiAmount, purchasedTokens);
 
-        // Mint tokens for FintechFans and Founders
-        uint256 fintechfans_tokens = tokens.mul(/*0.*/8).div(10);
-        uint256 founders_tokens = tokens.mul(/*0.*/2).div(10);
-        token.mint(wallet, fintechfans_tokens);
-        token.mint(foundersWallet, founders_tokens);/* TODO Locked vault, split */
+        mintTokensForFacilitators(purchasedTokens);
 
         forwardFunds();
+    }
+
+    /*
+     * @dev In total, (20/13) * `purchasedTokens` tokens are created.
+     * @dev 13/13th of these are for the Beneficiary.
+     * @dev 7/13th of these are minted for the Facilitators as follows:
+     * @dev   1/13th -> Founders
+     * @dev   2/13th -> Bounties
+     * @dev   4/13th -> FintechFans
+     */
+    function mintTokensForFacilitators(uint256 purchasedTokens) internal {
+        // Mint tokens for FintechFans and Founders
+        uint256 fintechfans_tokens = purchasedTokens.mul(4).div(13);
+        uint256 bounties_tokens = purchasedTokens.mul(2).div(13);
+        uint256 founders_tokens = purchasedTokens.mul(1).div(13);
+        token.mint(wallet, fintechfans_tokens);
+        token.mint(bountiesWallet, bounties_tokens);
+        token.mint(foundersWallet, founders_tokens);/* TODO Locked vault */
+
+        // TODO Think about maybe also generating events for these minting actions?
     }
 
     /*
