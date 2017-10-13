@@ -42,7 +42,8 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
         bountiesWallet = _bountiesWallet;
         foundersWallet = _foundersWallet;
         token = _token;
-        weiRaised = weiRaisedDuringPresale = _weiRaisedDuringPresale;
+        weiRaisedDuringPresale = _weiRaisedDuringPresale;
+        weiRaised = _weiRaisedDuringPresale;
     }
 
     /*
