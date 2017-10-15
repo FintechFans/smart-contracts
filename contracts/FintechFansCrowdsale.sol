@@ -105,7 +105,7 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
     /*
       Returns a fixed-size number that is 100 * the bonus amount.
      */
-    function currentBonusRate() public returns (uint) {
+    function currentBonusRate() public constant returns (uint) {
         /* TODO check how `rate' is used. */
         if(weiRaised < (2000000 * tokenDecimals) / rate) return 125/*.25*/; // 20% discount
         if(weiRaised < (4000000 * tokenDecimals) / rate) return 118/*.1764705882352942*/; // 15% discount
