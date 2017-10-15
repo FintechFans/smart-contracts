@@ -29,9 +29,9 @@ contract('FintechFansCrowdsale', function(accounts) {
     let startTime;
     let endTime;
 
-    let fintech_fans_wallet = fintech_fans_wallet;
-    let bounties_wallet = founders_wallet;
-    let founders_wallet = bounties_wallet;
+    let fintech_fans_wallet = accounts[0];
+    let bounties_wallet = accounts[1];
+    let founders_wallet = accounts[2];
 
     before(async function() {
         // Requirement to correctly read "now" as interpreted by at least testrpc.
@@ -44,13 +44,19 @@ contract('FintechFansCrowdsale', function(accounts) {
 
         token = await FintechCoin.new();
         // console.log(token);
+        console.log(startTime, endTime, rate, fintech_fans_wallet, bounties_wallet, founders_wallet, goal, cap, token.address, 0);
         crowdsale = await FintechFansCrowdsale.new(startTime, endTime, rate, fintech_fans_wallet, bounties_wallet, founders_wallet, goal, cap, token.address, 0);
+        console.log("After FFC creation");
 
         await token.transferOwnership(crowdsale.address);
+        console.log("After transferOwnership");
     });
 
     it('should be token owner', async function () {
+        console.log("Before token.owner()");
         const owner = await token.owner();
+        console.log("After token.owner()");
+        console.log(owner);
         owner.should.equal(crowdsale.address);
     });
 
