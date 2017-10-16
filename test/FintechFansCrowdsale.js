@@ -34,6 +34,7 @@ contract('FintechFansCrowdsale', function(accounts) {
     let bountiesWallet = accounts[1];
     let foundersWallet = accounts[2];
     let someUserWallet = accounts[3];
+    let someOtherUserWallet = accounts[4];
 
     const fintechFansReward = new BigNumber(4).div(13);
     const bountiesReward = new BigNumber(2).div(13);
@@ -65,8 +66,7 @@ contract('FintechFansCrowdsale', function(accounts) {
         });
         it('should fail when given non-FINC token address', async function() {
             let fakeToken = await StandardTokenMock.new();
-            console.log(fakeToken.address);
-            await FintechFansCrowdsale.new(startTime, endTime, rate, fintechFansWallet, foundersWallet, goal, 1, fake_token.address).should.be.rejectedWith(EVMThrow);
+            await FintechFansCrowdsale.new(startTime, endTime, rate, fintechFansWallet, foundersWallet, goal, 1, fakeToken.address).should.be.rejectedWith(EVMThrow);
         });
     });
 
@@ -108,13 +108,13 @@ contract('FintechFansCrowdsale', function(accounts) {
             
         };
 
-        let testTokenBuying = async function(tokenAmount, expectedBonusRate) {
+        let testTokenBuying = async function(wei, expectedBonusRate) {
             const oldTotalSupply = await token.totalSupply();
             const oldBalanceFintechFans = await token.balanceOf.call(fintechFansWallet);
             const oldBalanceBounties = await token.balanceOf.call(bountiesWallet);
             const oldBalanceFounders = await token.balanceOf.call(foundersWallet);
 
-            const wei = new BigNumber(tokenAmount);
+            wei = new BigNumber(wei);
             const expectedTokens = wei.mul(rate).floor();
             const expectedTokensIncludingBonus = expectedTokens.mul(125).div(100).floor(); // 1.25
 
@@ -146,12 +146,20 @@ contract('FintechFansCrowdsale', function(accounts) {
             totalSupply.should.be.bignumber.equal(expectedTotalSupply);
         };
 
-        [10, 20, 30, 50, 100, 120, 200, 300, 500, 1000, 1500, 2000, 5000, 10000].forEach(function(wei){
-            it('should mint given amount of tokens to proper addresses when spending (' + wei + ') wei', async function(){
-                // TODO Repeat this test for different wei amounts, and different pre-conditions.
-                await buyTokens(wei);
+        [[0, 125], [1000000, 125], [2000000, 118], [3000000, 118], [4000000, 111], [5000000, 111], [6000000, 105], [7000000, 105], [8000000, 105], [9000000, 100], [10000000, 100], [11000000, 100]].forEach(function(info){
+            let purchasedTokensRaised = new BigNumber(info[0]).mul(rate);
+            let expectedBonusRate = info[1];
+
+            [10, /*20, 30, 50,*/ 100, /*120, 200, 300, */500, 1000, /*1500, 2000, 5000,*/ 10000].forEach(function(wei){
+                it('should mint given amount of tokens to proper addresses when spending (' + wei + ') wei while already (' + purchasedTokensRaised + ') were purchased before', async function(){
+                    console.log(wei, purchasedTokensRaised, expectedBonusRate, someOtherUserWallet);
+                    // TODO Repeat this test for different wei amounts, and different pre-conditions.
+                    await crowdsale.buyTokens(someOtherUserWallet, {value: purchasedTokensRaised, from: someOtherUserWallet});
+                    await testTokenBuying(wei, expectedBonusRate);
+                });
             });
         });
+
 
     });
 
