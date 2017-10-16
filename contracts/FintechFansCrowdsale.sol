@@ -66,20 +66,20 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
     */
     function buyTokens(address beneficiary) public payable whenNotPaused {
         require(beneficiary != 0x0);
-        require(validPurchase());
 
         uint256 weiAmount = msg.value;
 
-        // calculate token amount to be created
+        /* // calculate token amount to be created */
         uint256 purchasedTokens = weiAmount.div(rate);
+        require(validPurchase(purchasedTokens));
         purchasedTokens = purchasedTokens.mul(currentBonusRate()).div(100);
-        /* require(purchasedTokens != 0); */
+        require(purchasedTokens != 0);
 
-        // update state
+        /* // update state */
         weiRaised = weiRaised.add(weiAmount);
         purchasedTokensRaised.add(purchasedTokens);
 
-        // Mint tokens for beneficiary
+        /* // Mint tokens for beneficiary */
         token.mint(beneficiary, purchasedTokens);
         TokenPurchase(msg.sender, beneficiary, weiAmount, purchasedTokens);
 
@@ -99,14 +99,16 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
     // @return true if crowdsale event has ended
     function hasEnded() public constant returns (bool) {
         bool capReached = purchasedTokensRaised >= cap;
-        return super.hasEnded() || capReached;
+        return Crowdsale.hasEnded() || capReached;
     }
 
-    // overriding CappedCrowdsale#validPurchase to add extra cap logic in tokens
+    // replace CappedCrowdsale#validPurchase to add extra cap logic in tokens
     // @return true if investors can buy at the moment
-    function validPurchase() internal constant returns (bool) {
-        bool withinCap = purchasedTokensRaised.add(msg.value) <= cap;
-        return super.validPurchase() && withinCap;
+    function validPurchase(uint256 purchasedTokens) internal constant returns (bool) {
+        /* bool withinCap = purchasedTokensRaised.add(purchasedTokens) <= cap; */
+        /* return Crowdsale.validPurchase() && withinCap; */
+        bool withinCap = purchasedTokensRaised.add(purchasedTokens) <= cap;
+        return Crowdsale.validPurchase() && withinCap;
     }
 
     /*

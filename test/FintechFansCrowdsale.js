@@ -20,8 +20,8 @@ const StandardTokenMock = artifacts.require("./stubs/StandardTokenMock");
 contract('FintechFansCrowdsale', function(accounts) {
     const rate = new BigNumber(1);
 
-    const goal = ether(5);
-    const cap = ether(50);
+    const goal = new BigNumber(1000000).mul(new BigNumber(10).pow(18));//ether(5);
+    const cap = new BigNumber(12000000).mul(new BigNumber(10).pow(18));// 5000000000 ether(50);
     const lessThanCap = ether(16);
 
     let crowdsale;
@@ -149,6 +149,7 @@ contract('FintechFansCrowdsale', function(accounts) {
         // [[0, 125], [1000000, 125], [2000000, 118], [3000000, 118], [4000000, 111], [5000000, 111], [6000000, 105], [7000000, 105], [8000000, 105], [9000000, 100], [10000000, 100], [11000000, 100]].forEach(function(info){
         [[1000000, 125]].forEach(function(info){
             let purchasedTokensRaised = new BigNumber(info[0]).mul(new BigNumber(10).pow(18)).mul(rate);
+            // let purchasedTokensRaised = new BigNumber(1).mul(new BigNumber(10).pow(18)).mul(rate);
             let expectedBonusRate = info[1];
 
             // [10, /*20, 30, 50,*/ 100, /*120, 200, 300, */500, 1000, /*1500, 2000, 5000,*/ 10000].forEach(function(wei){
