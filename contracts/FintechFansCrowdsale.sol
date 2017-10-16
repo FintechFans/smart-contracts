@@ -19,7 +19,10 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
     FintechCoin tokenContract;
     address public foundersWallet;
     address public bountiesWallet;
-    uint256 public weiRaisedDuringPresale;
+    uint256 public weiRaisedDuringPresale; // deprecated
+
+    uint256 public tokensPurchased;
+    uint256 public tokensPurchasedDuringPresale;
 
     function FintechFansCrowdsale (
         uint256 _startTime,
@@ -44,6 +47,9 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
         token = _token;
         weiRaisedDuringPresale = _weiRaisedDuringPresale;
         weiRaised = _weiRaisedDuringPresale;
+
+        purchasedTokensRaisedDuringPresale = _token.totalSupply(); // TODO Actual value, since only count tokens that were purchased directly.
+        purchasedTokensRaised = tokensPurchasedDuringPresale;
     }
 
     /*
@@ -56,9 +62,9 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
   }
 
     /*
-      Overridden version of Crowdsale.buyTokens because:
-      - The Wei->FFC rate depends on how many tokens have already been sold.
-      - Also mint tokens sent to FintechFans and the Founders at the same time.
+     * Overrides version of Crowdsale.buyTokens because:
+     * - The Wei->FFC rate depends on how many tokens have already been sold.
+     * - Also mint tokens sent to FintechFans and the Founders at the same time.
     */
     function buyTokens(address beneficiary) public payable whenNotPaused {
         require(beneficiary != 0x0);
@@ -72,6 +78,7 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
 
         // update state
         weiRaised = weiRaised.add(weiAmount);
+        purchasedTokensRaised.add(purchasedTokens);
 
         // Mint tokens for beneficiary
         token.mint(beneficiary, purchasedTokens);
@@ -82,6 +89,20 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
         forwardFunds();
     }
 
+    // Overrides RefundableCrowdsale#goalReached
+    // since we count the goal in purchased tokens, instead of in Wei.
+    // @return true if crowdsale has reached more funds than the minimum goal.
+    function goalReached() public constant returns (bool) {
+        return purchasedTokensRaised >= goal;
+    }
+
+    // Overrides CappedCrowdsale#hasEnded to add cap logic in tokens
+    // @return true if crowdsale event has ended
+    function hasEnded() public constant returns (bool) {
+        bool capReached = purchasedTokensRaised >= cap;
+        return super.hasEnded() || capReached;
+    }
+
     /*
      * @dev In total, (20/13) * `purchasedTokens` tokens are created.
      * @dev 13/13th of these are for the Beneficiary.
@@ -89,6 +110,7 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
      * @dev   1/13th -> Founders
      * @dev   2/13th -> Bounties
      * @dev   4/13th -> FintechFans
+     * Note that all result rational amounts are floored since the EVM only works with integer arithmetic.
      */
     function mintTokensForFacilitators(uint256 purchasedTokens) internal {
         // Mint tokens for FintechFans and Founders
@@ -97,20 +119,23 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
         uint256 founders_tokens = purchasedTokens.mul(1).div(13);
         token.mint(wallet, fintechfans_tokens);
         token.mint(bountiesWallet, bounties_tokens);
-        token.mint(foundersWallet, founders_tokens);/* TODO Locked vault */
-
-        // TODO Think about maybe also generating events for these minting actions?
+        token.mint(foundersWallet, founders_tokens);/* TODO Locked vault? */
     }
 
     /*
-      Returns a fixed-size number that is 100 * the bonus amount.
+     * @return a fixed-size number that is the total percentage of tokens that will be created. (100 * the bonus ratio)
+     * When < 2 million tokens purchased, this will be 125%, which is equivalent to a 20% discount
+     * When < 4 million tokens purchased, 118%, which is equivalent to a 15% discount.
+     * When < 6 million tokens purchased, 111%, which is equivalent to a 10% discount.
+     * When < 9 million tokens purchased, 105%, which is equivalent to a 5% discount.
+     * Otherwise, there is no bonus and the function returns 100%.
      */
     function currentBonusRate() public constant returns (uint) {
         /* TODO check how `rate' is used. */
-        if(weiRaised < (2000000 * tokenDecimals) / rate) return 125/*.25*/; // 20% discount
-        if(weiRaised < (4000000 * tokenDecimals) / rate) return 118/*.1764705882352942*/; // 15% discount
-        if(weiRaised < (6000000 * tokenDecimals) / rate) return 111/*.1111111111111112*/; // 10% discount
-        if(weiRaised < (9000000 * tokenDecimals) / rate) return 105/*.0526315789473684*/; // 5% discount
+        if(purchasedTokensRaised < (2000000 * tokenDecimals) / rate) return 125/*.25*/; // 20% discount
+        if(purchasedTokensRaised < (4000000 * tokenDecimals) / rate) return 118/*.1764705882352942*/; // 15% discount
+        if(purchasedTokensRaised < (6000000 * tokenDecimals) / rate) return 111/*.1111111111111112*/; // 10% discount
+        if(purchasedTokensRaised < (9000000 * tokenDecimals) / rate) return 105/*.0526315789473684*/; // 5% discount
         return 100;
     }
 
