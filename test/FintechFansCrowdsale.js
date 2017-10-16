@@ -30,14 +30,14 @@ contract('FintechFansCrowdsale', function(accounts) {
     let startTime;
     let endTime;
 
-    let fintech_fans_wallet = accounts[0];
-    let bounties_wallet = accounts[1];
-    let founders_wallet = accounts[2];
-    let some_user_wallet = accounts[3];
+    let fintechFansWallet = accounts[0];
+    let bountiesWallet = accounts[1];
+    let foundersWallet = accounts[2];
+    let someUserWallet = accounts[3];
 
-    const fintech_fans_reward = new BigNumber(4).div(13);
-    const bounties_reward = new BigNumber(2).div(13);
-    const founders_reward = new BigNumber(1).div(13);
+    const fintechFansReward = new BigNumber(4).div(13);
+    const bountiesReward = new BigNumber(2).div(13);
+    const foundersReward = new BigNumber(1).div(13);
 
     before(async function() {
         // Requirement to correctly read "now" as interpreted by at least testrpc.
@@ -49,7 +49,7 @@ contract('FintechFansCrowdsale', function(accounts) {
         endTime = startTime + duration.weeks(1);
 
         token = await FintechCoin.new();
-        crowdsale = await FintechFansCrowdsale.new(startTime, endTime, rate, fintech_fans_wallet, bounties_wallet, founders_wallet, goal, cap, token.address, 0);
+        crowdsale = await FintechFansCrowdsale.new(startTime, endTime, rate, fintechFansWallet, bountiesWallet, foundersWallet, goal, cap, token.address, 0);
 
         await token.transferOwnership(crowdsale.address);
     });
@@ -61,12 +61,12 @@ contract('FintechFansCrowdsale', function(accounts) {
 
     describe('creating a valid crowdsale', async function() {
         it('should fail if cap lower than goal', async function() {
-            await FintechFansCrowdsale.new(startTime, endTime, rate, fintech_fans_wallet, founders_wallet, goal, 1, token.address).should.be.rejectedWith(EVMThrow);
+            await FintechFansCrowdsale.new(startTime, endTime, rate, fintechFansWallet, foundersWallet, goal, 1, token.address).should.be.rejectedWith(EVMThrow);
         });
         it('should fail when given non-FINC token address', async function() {
-            let fake_token = await StandardTokenMock.new();
-            console.log(fake_token.address);
-            await FintechFansCrowdsale.new(startTime, endTime, rate, fintech_fans_wallet, founders_wallet, goal, 1, fake_token.address).should.be.rejectedWith(EVMThrow);
+            let fakeToken = await StandardTokenMock.new();
+            console.log(fakeToken.address);
+            await FintechFansCrowdsale.new(startTime, endTime, rate, fintechFansWallet, foundersWallet, goal, 1, fake_token.address).should.be.rejectedWith(EVMThrow);
         });
     });
 
@@ -104,39 +104,55 @@ contract('FintechFansCrowdsale', function(accounts) {
             postTotalSupply.should.be.bignumber.above(preTotalSupply);
         });
 
-        it('should mint given amount of tokens to proper addresses', async function(){
-            // TODO Repeat this test for different wei amounts, and different pre-conditions.
-            const wei = new BigNumber(1000);
-            const expected_tokens = wei.mul(rate).floor();
-            const expected_tokens_including_bonus = expected_tokens.mul(125).div(100).floor(); // 1.25
+        let prebuyTokens = function(tokenAmount) {
+            
+        };
 
+        let testTokenBuying = async function(tokenAmount, expectedBonusRate) {
+            const oldTotalSupply = await token.totalSupply();
+            const oldBalanceFintechFans = await token.balanceOf.call(fintechFansWallet);
+            const oldBalanceBounties = await token.balanceOf.call(bountiesWallet);
+            const oldBalanceFounders = await token.balanceOf.call(foundersWallet);
 
-            await crowdsale.buyTokens(some_user_wallet, {value: new BigNumber(wei), from: some_user_wallet});
-            const balance = await token.balanceOf.call(some_user_wallet);
+            const wei = new BigNumber(tokenAmount);
+            const expectedTokens = wei.mul(rate).floor();
+            const expectedTokensIncludingBonus = expectedTokens.mul(125).div(100).floor(); // 1.25
 
-            const balance_fintech_fans = await token.balanceOf.call(fintech_fans_wallet);
-            const balance_bounties = await token.balanceOf.call(bounties_wallet);
-            const balance_founders = await token.balanceOf.call(founders_wallet);
+            await crowdsale.buyTokens(someUserWallet, {value: new BigNumber(wei), from: someUserWallet});
+            const balance = await token.balanceOf.call(someUserWallet);
 
-            const current_bonus_rate = await crowdsale.currentBonusRate();
+            const balanceFintechFans = await token.balanceOf.call(fintechFansWallet);
+            const balanceBounties = await token.balanceOf.call(bountiesWallet);
+            const balanceFounders = await token.balanceOf.call(foundersWallet);
+
+            const currentBonusRate = await crowdsale.currentBonusRate();
             const totalSupply = await token.totalSupply();
 
             // current_bonus_rate.should.be.bignumber.equal(125);
-            console.log(current_bonus_rate);
+            console.log(currentBonusRate);
 
-            const expected_fintech_fans_reward = new BigNumber(expected_tokens_including_bonus).mul(fintech_fans_reward).floor();
-            const expected_bounties_reward = new BigNumber(expected_tokens_including_bonus).mul(bounties_reward).floor();
-            const expected_founders_reward = new BigNumber(expected_tokens_including_bonus).mul(founders_reward).floor();
+            const expectedFintechFansReward = new BigNumber(expectedTokensIncludingBonus).mul(fintechFansReward).floor().add(oldBalanceFintechFans);
+            const expectedBountiesReward = new BigNumber(expectedTokensIncludingBonus).mul(bountiesReward).floor().add(oldBalanceBounties);
+            const expectedFoundersReward = new BigNumber(expectedTokensIncludingBonus).mul(foundersReward).floor().add(oldBalanceFounders);
 
-            balance.should.be.bignumber.equal(new BigNumber(expected_tokens_including_bonus));
-            balance_fintech_fans.should.be.bignumber.equal(expected_fintech_fans_reward);
-            balance_bounties.should.be.bignumber.equal(expected_bounties_reward);
-            balance_founders.should.be.bignumber.equal(expected_founders_reward);
+            currentBonusRate.should.be.bignumber.equal(expectedBonusRate);
 
-            const expectedTotalSupply = expected_tokens_including_bonus.add(expected_fintech_fans_reward).add(expected_bounties_reward).add(expected_founders_reward);
+            balance.should.be.bignumber.equal(new BigNumber(expectedTokensIncludingBonus));
+            balanceFintechFans.should.be.bignumber.equal(expectedFintechFansReward);
+            balanceBounties.should.be.bignumber.equal(expectedBountiesReward);
+            balanceFounders.should.be.bignumber.equal(expectedFoundersReward);
 
+            const expectedTotalSupply = expectedTokensIncludingBonus.add(expectedFintechFansReward).add(expectedBountiesReward).add(expectedFoundersReward);
             totalSupply.should.be.bignumber.equal(expectedTotalSupply);
+        };
+
+        [10, 20, 30, 50, 100, 120, 200, 300, 500, 1000, 1500, 2000, 5000, 10000].forEach(function(wei){
+            it('should mint given amount of tokens to proper addresses when spending (' + wei + ') wei', async function(){
+                // TODO Repeat this test for different wei amounts, and different pre-conditions.
+                await buyTokens(wei);
+            });
         });
+
     });
 
     // TODO Check costs.
