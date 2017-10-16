@@ -26,7 +26,7 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
     function FintechFansCrowdsale (
         uint256 _startTime,
         uint256 _endTime,
-        uint256 _rate,
+        uint256 _rate, // amount of wei needs to be paid for a single 1e-18th token.
         address _wallet,
         address _bountiesWallet,
         address _foundersWallet,
@@ -71,8 +71,9 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
         uint256 weiAmount = msg.value;
 
         // calculate token amount to be created
-        uint256 purchasedTokens = weiAmount.mul(rate);
+        uint256 purchasedTokens = weiAmount.div(rate);
         purchasedTokens = purchasedTokens.mul(currentBonusRate()).div(100);
+        /* require(purchasedTokens != 0); */
 
         // update state
         weiRaised = weiRaised.add(weiAmount);
@@ -99,6 +100,13 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
     function hasEnded() public constant returns (bool) {
         bool capReached = purchasedTokensRaised >= cap;
         return super.hasEnded() || capReached;
+    }
+
+    // overriding CappedCrowdsale#validPurchase to add extra cap logic in tokens
+    // @return true if investors can buy at the moment
+    function validPurchase() internal constant returns (bool) {
+        bool withinCap = purchasedTokensRaised.add(msg.value) <= cap;
+        return super.validPurchase() && withinCap;
     }
 
     /*
