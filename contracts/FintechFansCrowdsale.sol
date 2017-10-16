@@ -19,10 +19,9 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
     FintechCoin tokenContract;
     address public foundersWallet;
     address public bountiesWallet;
-    uint256 public weiRaisedDuringPresale; // deprecated
 
-    uint256 public tokensPurchased;
-    uint256 public tokensPurchasedDuringPresale;
+    uint256 public purchasedTokensRaised;
+    uint256 public purchasedTokensRaisedDuringPresale;
 
     function FintechFansCrowdsale (
         uint256 _startTime,
@@ -34,7 +33,7 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
         uint256 _goal,
         uint256 _cap,
         FintechCoin _token,
-        uint256 _weiRaisedDuringPresale
+        uint256 _purchasedTokensRaisedDuringPresale
         )
         Crowdsale(_startTime, _endTime, _rate, _wallet)
         RefundableCrowdsale(_goal)
@@ -45,11 +44,10 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
         bountiesWallet = _bountiesWallet;
         foundersWallet = _foundersWallet;
         token = _token;
-        weiRaisedDuringPresale = _weiRaisedDuringPresale;
-        weiRaised = _weiRaisedDuringPresale;
+        weiRaised = 0;
 
-        purchasedTokensRaisedDuringPresale = _token.totalSupply(); // TODO Actual value, since only count tokens that were purchased directly.
-        purchasedTokensRaised = tokensPurchasedDuringPresale;
+        purchasedTokensRaisedDuringPresale = _purchasedTokensRaisedDuringPresale; // TODO Actual value, since only count tokens that were purchased directly.
+        purchasedTokensRaised = purchasedTokensRaisedDuringPresale;
     }
 
     /*
