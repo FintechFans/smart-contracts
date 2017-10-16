@@ -32,6 +32,7 @@ contract('FintechFansCrowdsale', function(accounts) {
     let fintech_fans_wallet = accounts[0];
     let bounties_wallet = accounts[1];
     let founders_wallet = accounts[2];
+    let some_user_wallet = accounts[3];
 
     const total_creation_rate = new BigNumber(20).div(13);
     const fintech_fans_reward = new BigNumber(4).div(13);
@@ -100,21 +101,22 @@ contract('FintechFansCrowdsale', function(accounts) {
         });
 
         it('should mint given amount of tokens to proper addresses', async function(){
-            const eth = new BigNumber(1000);
-            const expected_tokens = eth.mul(rate);
+            const wei = new BigNumber(1000);
+            const expected_tokens = eth.mul(rate).floor();
             const expected_tokens_including_bonus = expected_tokens.mul(125).div(100).floor(); // 1.25
             const expectedTotalSupply = new BigNumber(expected_tokens_including_bonus).mul(total_creation_rate).floor();
 
-            let totalSupply = await token.totalSupply();
-            const result = await crowdsale.buyTokens(bounties_wallet, {value: new BigNumber(eth), from: accounts[4]});
 
+            await crowdsale.buyTokens(some_user_wallet, {value: new BigNumber(wei), from: some_user_wallet});
+            const balance = await token.balanceOf.call(some_user_wallet);
 
-            const balance = await token.balanceOf.call(bounties_wallet);
             const balance_fintech_fans = await token.balanceOf.call(fintech_fans_wallet);
             const balance_bounties = await token.balanceOf.call(bounties_wallet);
             const balance_founders = await token.balanceOf.call(founders_wallet);
 
             const current_bonus_rate = await crowdsale.currentBonusRate();
+            const totalSupply = await token.totalSupply();
+
             // current_bonus_rate.should.be.bignumber.equal(125);
             console.log(current_bonus_rate);
 
