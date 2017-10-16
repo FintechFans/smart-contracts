@@ -15,6 +15,7 @@ require('chai')
 
 const FintechFansCrowdsale = artifacts.require("FintechFansCrowdsale");
 const FintechCoin = artifacts.require("FintechCoin");
+const StandardTokenMock = artifacts.require("./stubs/StandardTokenMock");
 
 contract('FintechFansCrowdsale', function(accounts) {
     const rate = new BigNumber(1000);
@@ -62,6 +63,11 @@ contract('FintechFansCrowdsale', function(accounts) {
         it('should fail if cap lower than goal', async function() {
             await FintechFansCrowdsale.new(startTime, endTime, rate, fintech_fans_wallet, founders_wallet, goal, 1, token.address).should.be.rejectedWith(EVMThrow);
         });
+        it('should fail when given non-FINC token address', async function() {
+            let fake_token = await StandardTokenMock.new();
+            console.log(fake_token.address);
+            await FintechFansCrowdsale.new(startTime, endTime, rate, fintech_fans_wallet, founders_wallet, goal, 1, fake_token.address).should.be.rejectedWith(EVMThrow);
+        });
     });
 
     describe("accepting payments", async function() {
@@ -95,18 +101,14 @@ contract('FintechFansCrowdsale', function(accounts) {
             await crowdsale.send(new BigNumber(wei_amount));
 
             let postTotalSupply = await token.totalSupply.call();
-            // const expectedTotalSupply = new BigNumber(wei_amount)
-            //           .mul(rate).floor()
-            //           .mul(125).div(100).floor()
-            //           .mul(total_creation_rate).floor();
-            postTotalSupply.should.be.bignumber.higher.than(preTotalSupply);
+            postTotalSupply.should.be.bignumber.above(preTotalSupply);
         });
 
         it('should mint given amount of tokens to proper addresses', async function(){
+            // TODO Repeat this test for different wei amounts, and different pre-conditions.
             const wei = new BigNumber(1000);
             const expected_tokens = wei.mul(rate).floor();
             const expected_tokens_including_bonus = expected_tokens.mul(125).div(100).floor(); // 1.25
-            const expectedTotalSupply = new BigNumber(expected_tokens_including_bonus).mul(total_creation_rate).floor();
 
 
             await crowdsale.buyTokens(some_user_wallet, {value: new BigNumber(wei), from: some_user_wallet});
@@ -122,7 +124,6 @@ contract('FintechFansCrowdsale', function(accounts) {
             // current_bonus_rate.should.be.bignumber.equal(125);
             console.log(current_bonus_rate);
 
-
             const expected_fintech_fans_reward = new BigNumber(expected_tokens_including_bonus).mul(fintech_fans_reward).floor();
             const expected_bounties_reward = new BigNumber(expected_tokens_including_bonus).mul(bounties_reward).floor();
             const expected_founders_reward = new BigNumber(expected_tokens_including_bonus).mul(founders_reward).floor();
@@ -132,11 +133,12 @@ contract('FintechFansCrowdsale', function(accounts) {
             balance_bounties.should.be.bignumber.equal(expected_bounties_reward);
             balance_founders.should.be.bignumber.equal(expected_founders_reward);
 
-            const expectedTotalSupply2 = expected_tokens_including_bonus.add(expected_fintech_fans_reward).add(expected_bounties_reward).add(expected_founders_reward);
+            const expectedTotalSupply = expected_tokens_including_bonus.add(expected_fintech_fans_reward).add(expected_bounties_reward).add(expected_founders_reward);
 
-            totalSupply.should.be.bignumber.equal(expectedTotalSupply2);
+            totalSupply.should.be.bignumber.equal(expectedTotalSupply);
         });
     });
 
     // TODO Check costs.
+    // TODO ensure superclass behaviours still work.
 });

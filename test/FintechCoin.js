@@ -62,5 +62,5 @@ contract('FintechCoin', function(accounts) {
             account_two_ending_balance.toNumber().should.be.equal(account_two_starting_balance.toNumber());
         });
     });
-    // TODO test creation of events
+    // TODO ensure superclass behaviours still work.
 });

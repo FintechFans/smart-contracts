@@ -70,5 +70,6 @@ contract('ApprovedBurnableToken', function (accounts) {
         await token.burnFrom(accounts[0], 2, { from: accounts[1] })
             .should.be.rejectedWith(EVMThrow);
     });
+
 });
 
