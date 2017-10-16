@@ -34,7 +34,6 @@ contract('FintechFansCrowdsale', function(accounts) {
     let founders_wallet = accounts[2];
     let some_user_wallet = accounts[3];
 
-    const total_creation_rate = new BigNumber(20).div(13);
     const fintech_fans_reward = new BigNumber(4).div(13);
     const bounties_reward = new BigNumber(2).div(13);
     const founders_reward = new BigNumber(1).div(13);
@@ -92,17 +91,20 @@ contract('FintechFansCrowdsale', function(accounts) {
 
         it('minted tokens when something was sold', async function() {
             const wei_amount = 1000;
+            const preTotalSupply = await token.totalSupply.call();
             await crowdsale.send(new BigNumber(wei_amount));
 
-            let totalSupply = await token.totalSupply.call();
-            const bonusMultiplier = new BigNumber(10).div(8);
-            const expectedTotalSupply = new BigNumber(wei_amount).mul(rate).mul(bonusMultiplier).mul(total_creation_rate);
-            totalSupply.should.be.bignumber.equal(expectedTotalSupply);
+            let postTotalSupply = await token.totalSupply.call();
+            // const expectedTotalSupply = new BigNumber(wei_amount)
+            //           .mul(rate).floor()
+            //           .mul(125).div(100).floor()
+            //           .mul(total_creation_rate).floor();
+            postTotalSupply.should.be.bignumber.higher.than(preTotalSupply);
         });
 
         it('should mint given amount of tokens to proper addresses', async function(){
             const wei = new BigNumber(1000);
-            const expected_tokens = eth.mul(rate).floor();
+            const expected_tokens = wei.mul(rate).floor();
             const expected_tokens_including_bonus = expected_tokens.mul(125).div(100).floor(); // 1.25
             const expectedTotalSupply = new BigNumber(expected_tokens_including_bonus).mul(total_creation_rate).floor();
 
@@ -121,9 +123,9 @@ contract('FintechFansCrowdsale', function(accounts) {
             console.log(current_bonus_rate);
 
 
-            const expected_fintech_fans_reward = new BigNumber(expected_tokens_including_bonus).mul(fintech_fans_reward);
-            const expected_bounties_reward = new BigNumber(expected_tokens_including_bonus).mul(bounties_reward);
-            const expected_founders_reward = new BigNumber(expected_tokens_including_bonus).mul(founders_reward);
+            const expected_fintech_fans_reward = new BigNumber(expected_tokens_including_bonus).mul(fintech_fans_reward).floor();
+            const expected_bounties_reward = new BigNumber(expected_tokens_including_bonus).mul(bounties_reward).floor();
+            const expected_founders_reward = new BigNumber(expected_tokens_including_bonus).mul(founders_reward).floor();
 
             balance.should.be.bignumber.equal(new BigNumber(expected_tokens_including_bonus));
             balance_fintech_fans.should.be.bignumber.equal(expected_fintech_fans_reward);
