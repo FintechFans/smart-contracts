@@ -146,14 +146,14 @@ contract('FintechFansCrowdsale', function(accounts) {
             totalSupply.should.be.bignumber.equal(expectedTotalSupply);
         };
 
-        // [[0, 125], [1000000, 125], [2000000, 118], [3000000, 118], [4000000, 111], [5000000, 111], [6000000, 105], [7000000, 105], [8000000, 105], [9000000, 100], [10000000, 100], [11000000, 100]].forEach(function(info){
-        [[1000000, 125]].forEach(function(info){
+        [[1, 125], [1000000, 125], [2000000, 118], [3000000, 118], [4000000, 111], [5000000, 111], [6000000, 105], [7000000, 105], [8000000, 105], [9000000, 100], [10000000, 100], [11000000, 100]].forEach(function(info){
+        // [[1000000, 125]].forEach(function(info){
             let purchasedTokensRaised = new BigNumber(info[0]).mul(new BigNumber(10).pow(18)).mul(rate);
             // let purchasedTokensRaised = new BigNumber(1).mul(new BigNumber(10).pow(18)).mul(rate);
             let expectedBonusRate = info[1];
 
-            // [10, /*20, 30, 50,*/ 100, /*120, 200, 300, */500, 1000, /*1500, 2000, 5000,*/ 10000].forEach(function(wei){
-            [10].forEach(function(wei){
+            [10, /*20, 30, 50,*/ 100, /*120, 200, 300, */500, 1000, /*1500, 2000, 5000,*/ 10000].forEach(function(wei){
+            // [10].forEach(function(wei){
                 it('should mint given amount of tokens to proper addresses when spending (' + wei + ') wei while already (' + purchasedTokensRaised.toString() + ') were purchased before', async function(){
                     console.log(wei.toString(), purchasedTokensRaised.toString(), expectedBonusRate.toString(), someOtherUserWallet);
                     // await crowdsale.buyTokens(someOtherUserWallet, {value: new BigNumber(10).pow(19), from: someOtherUserWallet});
