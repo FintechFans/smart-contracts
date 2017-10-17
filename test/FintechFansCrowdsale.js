@@ -20,9 +20,10 @@ const StandardTokenMock = artifacts.require("./stubs/StandardTokenMock");
 contract('FintechFansCrowdsale', function(accounts) {
     const rate = new BigNumber(1);
 
-    const goal = new BigNumber(1000000).mul(new BigNumber(10).pow(18));//ether(5);
-    const cap = new BigNumber(12000000).mul(new BigNumber(10).pow(18));// 5000000000 ether(50);
-    const lessThanCap = ether(16);
+    const tokenDecimals = new BigNumber(10).pow(18);
+    const goal = new BigNumber(1000000).mul(tokenDecimals);//ether(5);
+    const cap = new BigNumber(12000000).mul(tokenDecimals);// 5000000000 ether(50);
+    const lessThanCap = new BigNumber(8000000).mul(tokenDecimals);
 
     let crowdsale;
     let token;
@@ -116,7 +117,7 @@ contract('FintechFansCrowdsale', function(accounts) {
 
             wei = new BigNumber(wei);
             const expectedTokens = wei.div(rate).floor();
-            const expectedTokensIncludingBonus = expectedTokens.mul(125).div(100).floor(); // 1.25
+            const expectedTokensIncludingBonus = expectedTokens.mul(expectedBonusRate).div(100).floor(); // 1.25
 
             await crowdsale.buyTokens(someUserWallet, {value: new BigNumber(wei), from: someUserWallet});
             const balance = await token.balanceOf.call(someUserWallet);
@@ -146,20 +147,24 @@ contract('FintechFansCrowdsale', function(accounts) {
             totalSupply.should.be.bignumber.equal(expectedTotalSupply);
         };
 
+        // TODO Fix euro amounts; keep bonus tokens in mind when overstepping boundaries and cap.
         [[1, 125], [1000000, 125], [2000000, 118], [3000000, 118], [4000000, 111], [5000000, 111], [6000000, 105], [7000000, 105], [8000000, 105], [9000000, 100], [10000000, 100], [11000000, 100]].forEach(function(info){
         // [[1000000, 125]].forEach(function(info){
-            let purchasedTokensRaised = new BigNumber(info[0]).mul(new BigNumber(10).pow(18)).mul(rate);
+            let purchasedTokensRaised = new BigNumber(info[0]).mul(0.8).mul(new BigNumber(10).pow(18)).mul(rate);
             // let purchasedTokensRaised = new BigNumber(1).mul(new BigNumber(10).pow(18)).mul(rate);
             let expectedBonusRate = info[1];
 
-            [10, /*20, 30, 50,*/ 100, /*120, 200, 300, */500, 1000, /*1500, 2000, 5000,*/ 10000].forEach(function(wei){
-            // [10].forEach(function(wei){
+            // [10, /*20, 30, 50,*/ 100, /*120, 200, 300, */500, 1000, /*1500, 2000, 5000,*/ 10000].forEach(function(wei){
+            [10].forEach(function(wei){
+                console.log("wei", wei);
                 it('should mint given amount of tokens to proper addresses when spending (' + wei + ') wei while already (' + purchasedTokensRaised.toString() + ') were purchased before', async function(){
                     console.log(wei.toString(), purchasedTokensRaised.toString(), expectedBonusRate.toString(), someOtherUserWallet);
                     // await crowdsale.buyTokens(someOtherUserWallet, {value: new BigNumber(10).pow(19), from: someOtherUserWallet});
                     await crowdsale.send(purchasedTokensRaised, {from: someOtherUserWallet});
                     let currentBonusRate = await crowdsale.currentBonusRate();
                     console.log("currentBonusRate:", currentBonusRate);
+                    await crowdsale.purchasedTokensRaised();
+                    console.log("purchasedTokensRaised", purchasedTokensRaised);
                     // TODO Repeat this test for different wei amounts, and different pre-conditions.
                     // await crowdsale.buyTokens(someOtherUserWallet, {value: purchasedTokensRaised, from: someOtherUserWallet});
                     // await crowdsale.buyTokens(someOtherUserWallet, {value: new BigNumber(purchasedTokensRaised), from: someOtherUserWallet});

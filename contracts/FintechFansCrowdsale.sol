@@ -23,6 +23,8 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
     uint256 public purchasedTokensRaised;
     uint256 public purchasedTokensRaisedDuringPresale;
 
+    uint256 oneTwelfthOfCap;
+
     function FintechFansCrowdsale (
         uint256 _startTime,
         uint256 _endTime,
@@ -48,6 +50,8 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
 
         purchasedTokensRaisedDuringPresale = _purchasedTokensRaisedDuringPresale; // TODO Actual value, since only count tokens that were purchased directly.
         purchasedTokensRaised = purchasedTokensRaisedDuringPresale;
+
+        oneTwelfthOfCap = _cap / 12;
     }
 
     /*
@@ -77,7 +81,7 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
 
         /* // update state */
         weiRaised = weiRaised.add(weiAmount);
-        purchasedTokensRaised.add(purchasedTokens);
+        purchasedTokensRaised = purchasedTokensRaised.add(purchasedTokens);
 
         /* // Mint tokens for beneficiary */
         token.mint(beneficiary, purchasedTokens);
@@ -140,13 +144,10 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
      */
     function currentBonusRate() public constant returns (uint) {
         /* TODO check how `rate' is used. */
-        if(purchasedTokensRaised < (2000000 * tokenDecimals) / rate) return 125/*.25*/; // 20% discount
-        if(purchasedTokensRaised < (4000000 * tokenDecimals) / rate) return 118/*.1764705882352942*/; // 15% discount
-        if(purchasedTokensRaised < (6000000 * tokenDecimals) / rate) return 111/*.1111111111111112*/; // 10% discount
-        if(purchasedTokensRaised < (9000000 * tokenDecimals) / rate) return 105/*.0526315789473684*/; // 5% discount
+        if(purchasedTokensRaised < (2 * oneTwelfthOfCap)) return 125/*.25*/; // 20% discount
+        if(purchasedTokensRaised < (4 * oneTwelfthOfCap)) return 118/*.1764705882352942*/; // 15% discount
+        if(purchasedTokensRaised < (6 * oneTwelfthOfCap)) return 111/*.1111111111111112*/; // 10% discount
+        if(purchasedTokensRaised < (9 * oneTwelfthOfCap)) return 105/*.0526315789473684*/; // 5% discount
         return 100;
     }
-
-
-
 }
