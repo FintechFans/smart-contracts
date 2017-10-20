@@ -23,7 +23,7 @@ contract('FintechFansCrowdsale', function(accounts) {
     const tokenDecimals = new BigNumber(10).pow(18);
     const goal = new BigNumber(1000000).mul(tokenDecimals);//ether(5);
     const cap = new BigNumber(12000000).mul(tokenDecimals);// 5000000000 ether(50);
-    const lessThanCap = new BigNumber(8000000).mul(tokenDecimals);
+    const lessThanCap = new BigNumber(400000).mul(tokenDecimals);
 
     let crowdsale;
     let token;
@@ -77,13 +77,13 @@ contract('FintechFansCrowdsale', function(accounts) {
         });
 
         it('Should accept payments within cap', async function(){
-            await crowdsale.send(cap.minus(lessThanCap)).should.be.fulfilled;
+            // await crowdsale.send(cap.minus(lessThanCap.mul(2))).should.be.fulfilled;
             await crowdsale.send(lessThanCap).should.be.fulfilled;
         });
 
         it('does not accept payments when paused', async function() {
             await crowdsale.pause().should.be.fulfilled;
-            await crowdsale.send(cap.minus(lessThanCap)).should.be.rejectedWith(EVMThrow);
+            await crowdsale.send(lessThanCap).should.be.rejectedWith(EVMThrow);
         });
     });
 
@@ -129,9 +129,6 @@ contract('FintechFansCrowdsale', function(accounts) {
             const currentBonusRate = await crowdsale.currentBonusRate();
             const totalSupply = await token.totalSupply();
 
-            // current_bonus_rate.should.be.bignumber.equal(125);
-            console.log(currentBonusRate.toString());
-
             const expectedFintechFansReward = new BigNumber(expectedTokensIncludingBonus).mul(fintechFansReward).floor().add(oldBalanceFintechFans);
             const expectedBountiesReward = new BigNumber(expectedTokensIncludingBonus).mul(bountiesReward).floor().add(oldBalanceBounties);
             const expectedFoundersReward = new BigNumber(expectedTokensIncludingBonus).mul(foundersReward).floor().add(oldBalanceFounders);
@@ -149,32 +146,20 @@ contract('FintechFansCrowdsale', function(accounts) {
 
         // TODO Fix euro amounts; keep bonus tokens in mind when overstepping boundaries and cap.
         [[1, 125], [1000000, 125], [2000000, 118], [3000000, 118], [4000000, 111], [5000000, 111], [6000000, 105], [7000000, 105], [8000000, 105], [9000000, 100], [10000000, 100], [11000000, 100]].forEach(function(info){
-        // [[1000000, 125]].forEach(function(info){
-            let purchasedTokensRaised = new BigNumber(info[0]).mul(0.8).mul(new BigNumber(10).pow(18)).mul(rate);
-            // let purchasedTokensRaised = new BigNumber(1).mul(new BigNumber(10).pow(18)).mul(rate);
             let expectedBonusRate = info[1];
+            let purchasedTokensRaised = new BigNumber(info[0]).mul(0.8).mul(new BigNumber(10).pow(18)).mul(rate);
 
-            // [10, /*20, 30, 50,*/ 100, /*120, 200, 300, */500, 1000, /*1500, 2000, 5000,*/ 10000].forEach(function(wei){
-            [10].forEach(function(wei){
+            [10, /*20, 30, 50,*/ 100, /*120, 200, 300, */500, 1000, /*1500, 2000, 5000,*/ 10000].forEach(function(wei){
+            // [10].forEach(function(wei){
                 console.log("wei", wei);
                 it('should mint given amount of tokens to proper addresses when spending (' + wei + ') wei while already (' + purchasedTokensRaised.toString() + ') were purchased before', async function(){
-                    console.log(wei.toString(), purchasedTokensRaised.toString(), expectedBonusRate.toString(), someOtherUserWallet);
-                    // await crowdsale.buyTokens(someOtherUserWallet, {value: new BigNumber(10).pow(19), from: someOtherUserWallet});
                     await crowdsale.send(purchasedTokensRaised, {from: someOtherUserWallet});
-                    let currentBonusRate = await crowdsale.currentBonusRate();
-                    console.log("currentBonusRate:", currentBonusRate);
                     await crowdsale.purchasedTokensRaised();
-                    console.log("purchasedTokensRaised", purchasedTokensRaised);
-                    // TODO Repeat this test for different wei amounts, and different pre-conditions.
-                    // await crowdsale.buyTokens(someOtherUserWallet, {value: purchasedTokensRaised, from: someOtherUserWallet});
-                    // await crowdsale.buyTokens(someOtherUserWallet, {value: new BigNumber(purchasedTokensRaised), from: someOtherUserWallet});
-                    console.log("inbetween");
                     await testTokenBuying(wei, expectedBonusRate);
                 });
             });
         });
     });
 
-    // TODO Check costs.
     // TODO ensure superclass behaviours still work.
 });
