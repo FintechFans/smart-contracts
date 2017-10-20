@@ -43,47 +43,4 @@ contract ApprovedBurnableToken is BurnableToken {
         BurnFrom(_owner, burner, _value);
         Burn(_owner, _value);
     }
-
-    /* /\** */
-    /*  * @dev Approve the passed address to spend the specified amount of tokens on behalf of msg.sender. */
-    /*  * */
-    /*  * Beware that changing an allowance with this method brings the risk that someone may use both the old */
-    /*  * and the new allowance by unfortunate transaction ordering. One possible solution to mitigate this */
-    /*  * race condition is to first reduce the spender's allowance to 0 and set the desired value afterwards: */
-    /*  * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729 */
-    /*  * */
-    /*  * Therefore, using `increaseApproval` and `decreaseApproval` instead is advised. */
-    /*  * */
-    /*  * @param _burner The address which will spend the funds. */
-    /*  * @param _value The amount of tokens to be spent. */
-    /*  *\/ */
-    /* function approveBurn(address _burner, uint256 _value) public returns (bool) { */
-    /*     allowed[msg.sender][_burner] = _value; */
-    /*     BurnApproval(msg.sender, _burner, _value); */
-    /*     return true; */
-    /* } */
-
-    /* /\** */
-    /*  * approve might be called when allowed[_burner] == 0. To increment */
-    /*  * allowed value is better to use this function to avoid two calls (and wait until */
-    /*  * the first transaction is mined) */
-    /*  * */
-    /*  * Adapted from MonolithDAO Token.sol */
-    /*  *\/ */
-    /* function increaseBurnApproval (address _burner, uint _addedValue) public returns (bool success) { */
-    /*     allowed[msg.sender][_burner] = allowed[msg.sender][_burner].add(_addedValue); */
-    /*     Approval(msg.sender, _burner, allowed[msg.sender][_burner]); */
-    /*     return true; */
-    /* } */
-
-    /* function decreaseBurnApproval (address _burner, uint _subtractedValue) public returns (bool success) { */
-    /*     uint oldValue = allowed[msg.sender][_burner]; */
-    /*     if (_subtractedValue > oldValue) { */
-    /*         allowed[msg.sender][_burner] = 0; */
-    /*     } else { */
-    /*         allowed[msg.sender][_burner] = oldValue.sub(_subtractedValue); */
-    /*     } */
-    /*     BurnApproval(msg.sender, _burner, allowed[msg.sender][_burner]); */
-    /*     return true; */
-    /* } */
 }

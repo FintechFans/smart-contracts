@@ -71,5 +71,6 @@ contract('ApprovedBurnableToken', function (accounts) {
             .should.be.rejectedWith(EVMThrow);
     });
 
+    // TODO Test with Smart Contract that burns for you. (Placeholder for the Marketplace)
 });
 

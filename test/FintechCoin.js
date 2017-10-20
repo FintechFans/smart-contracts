@@ -61,6 +61,30 @@ contract('FintechCoin', function(accounts) {
 
             account_two_ending_balance.toNumber().should.be.equal(account_two_starting_balance.toNumber());
         });
+
+        it("Is not tradeable while still mintable", async function(){
+            let account_one = accounts[0];
+            let account_two = accounts[1];
+            let amount = 100;
+
+            await token.transfer(account_two, amount, {from: account_one}).should.be.rejectedWith(EVMThrow);
+        });
+
+        it("Is tradeable when no longer mintable", async function(){
+            let account_one = accounts[0];
+            let account_two = accounts[1];
+            let amount = 100;
+
+
+            let account_two_starting_balance = await token.balanceOf(account_two);
+
+            await token.finishMinting();
+            await token.transfer(account_two, amount, {from: account_one}).should.be.fulfilled;
+
+
+            let account_two_ending_balance = await token.balanceOf(account_two);
+            account_two_ending_balance.toNumber().should.be.equal(account_two_starting_balance.toNumber().add(amount));
+        });
     });
     // TODO ensure superclass behaviours still work.
 });

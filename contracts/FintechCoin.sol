@@ -15,8 +15,9 @@ import "zeppelin-solidity/contracts/token/MintableToken.sol";
 import "zeppelin-solidity/contracts/ownership/Ownable.sol";
 
 import "./ApprovedBurnableToken.sol";
+import "./UnlockedAfterMintingToken.sol";
 
-contract FintechCoin is Ownable, MintableToken, ApprovedBurnableToken {
+contract FintechCoin is Ownable, UnlockedAfterMintingToken, ApprovedBurnableToken {
     uint8 public constant contractVersion = 1;
 
     string public constant name = "FintechCoin";
@@ -27,4 +28,6 @@ contract FintechCoin is Ownable, MintableToken, ApprovedBurnableToken {
     // TODO extractToken function to allow people to retrieve token-funds sent here by mistake.
 
     // TODO ERC223-interface
+
+    // TODO Transferrable only after minting completed.
 }
