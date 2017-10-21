@@ -143,7 +143,6 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
      * Otherwise, there is no bonus and the function returns 100%.
      */
     function currentBonusRate() public constant returns (uint) {
-        /* TODO check how `rate' is used. */
         if(purchasedTokensRaised < (2 * oneTwelfthOfCap)) return 125/*.25*/; // 20% discount
         if(purchasedTokensRaised < (4 * oneTwelfthOfCap)) return 118/*.1764705882352942*/; // 15% discount
         if(purchasedTokensRaised < (6 * oneTwelfthOfCap)) return 111/*.1111111111111112*/; // 10% discount
