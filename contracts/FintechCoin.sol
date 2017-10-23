@@ -8,7 +8,7 @@ import "./ApprovedBurnableToken.sol";
 import "./UnlockedAfterMintingToken.sol";
 
 /**
-   The FintechCoin is the coin used by the FintechFans platforms and services.
+   @title The FintechCoin is the coin used by the FintechFans platforms and services.
 
    It is its own separate cryptocurrency to ensure that fluctuations in prices of other cryptocurrencies
    do not (strongly) affect the prices of the Fintech services that use it.
@@ -34,16 +34,27 @@ import "./UnlockedAfterMintingToken.sol";
 */
 contract FintechCoin is UnlockedAfterMintingToken, ApprovedBurnableToken {
         /**
-           We do not expect this to change ever after deployment,
-           but it is a way to identify different versions of the FintechCoin during development.
+           @dev We do not expect this to change ever after deployment,
+           @dev but it is a way to identify different versions of the FintechCoin during development.
         */
         uint8 public constant contractVersion = 1;
 
+        /**
+           @dev The name of the FintechCoin, specified as indicated in ERC20.
+         */
         string public constant name = "FintechCoin";
+
+        /**
+           @dev The abbreviation FINC, specified as indicated in ERC20.
+        */
         string public constant symbol = "FINC";
+
+        /**
+           @dev The smallest denomination of the FintechCoin is 1 * 10^(-18) FINC. `decimals` is specified as indicated in ERC20.
+        */
         uint8 public constant decimals = 18;
 
-        // TODO extractToken function to allow people to retrieve token-funds sent here by mistake.
+        // TODO extractToken function to allow people to retrieve token-funds sent here by mistake?
 
         // TODO ERC223-interface
 }
