@@ -1,3 +1,5 @@
+pragma solidity ^0.4.11;
+
 /*
 A token that can only be traded after its minting procedure has finished.
 */
