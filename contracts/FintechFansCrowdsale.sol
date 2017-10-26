@@ -6,9 +6,12 @@ import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 import 'zeppelin-solidity/contracts/lifecycle/Pausable.sol';
 
-/* Restrict certain actions to only the contract's owner: */
+/* Crowdsale-specific logic: */
 import 'zeppelin-solidity/contracts/crowdsale/CappedCrowdsale.sol';
 import 'zeppelin-solidity/contracts/crowdsale/RefundableCrowdsale.sol';
+
+/* Vault tokens are locked in until 24 months for Founders. */
+import 'zeppelin-solidity/contracts/token/TokenTimelock.sol';
 
 /* Reference to the FintechCoin contract, whose tokens are sold. */
 import './FintechCoin.sol';
@@ -28,13 +31,14 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
         /**
            Address of the FintechCoin contract that was deployed prior to deploying this FintechFansCrowdsale conntract.
          */
-        FintechCoin tokenContract;
+        FintechCoin public tokenContract;
 
         /**
            Address of the wallet of the founders.
            In this wallet, part of the facilitating tokens will be stored, and they will be locked for 24 months.
          */
         address public foundersWallet;
+        TokenTimelock public foundersVault;
 
         /**
            Address of the wallet used to pay out bounties.
@@ -91,15 +95,17 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
         {
                 require(_goal < _cap);
 
-                bountiesWallet = _bountiesWallet;
-                foundersWallet = _foundersWallet;
+                oneTwelfthOfCap = _cap / 12;
+
                 token = _token;
                 weiRaised = 0;
 
                 purchasedTokensRaisedDuringPresale = _purchasedTokensRaisedDuringPresale;
                 purchasedTokensRaised = purchasedTokensRaisedDuringPresale;
 
-                oneTwelfthOfCap = _cap / 12;
+                bountiesWallet = _bountiesWallet;
+                foundersWallet = _foundersWallet;
+                foundersVault = new TokenTimelock(_token, _foundersWallet, _endTime + 2 years);
         }
 
         /*
@@ -188,7 +194,7 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
                 uint256 founders_tokens = purchasedTokens.mul(1).div(13);
                 token.mint(wallet, fintechfans_tokens);
                 token.mint(bountiesWallet, bounties_tokens);
-                token.mint(foundersWallet, founders_tokens);/* TODO Locked vault? */
+                token.mint(foundersVault, founders_tokens);/* TODO Locked vault? */
         }
 
         /**
