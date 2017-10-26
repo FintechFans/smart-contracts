@@ -105,10 +105,6 @@ contract('FintechFansCrowdsale', function(accounts) {
             postTotalSupply.should.be.bignumber.above(preTotalSupply);
         });
 
-        let prebuyTokens = function(tokenAmount) {
-            
-        };
-
         let testTokenBuying = async function(wei, expectedBonusRate) {
             const oldTotalSupply = await token.totalSupply();
             const oldBalanceFintechFans = await token.balanceOf.call(fintechFansWallet);
