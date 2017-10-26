@@ -78,8 +78,8 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
            @param _purchasedTokensRaisedDuringPresale The amount (in 1 * 18^18 tokens) that was purchased during the presale.
          */
         function FintechFansCrowdsale (
-                uint256 _startTime,
-                uint256 _endTime,
+                uint64 _startTime,
+                uint64 _endTime,
                 uint256 _rate, // amount of wei needs to be paid for a single 1e-18th token.
                 address _wallet,
                 address _bountiesWallet,

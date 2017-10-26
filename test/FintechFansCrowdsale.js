@@ -36,6 +36,7 @@ contract('FintechFansCrowdsale', function(accounts) {
     let foundersWallet = accounts[2];
     let someUserWallet = accounts[3];
     let someOtherUserWallet = accounts[4];
+    let foundersVault;
 
     const fintechFansReward = new BigNumber(4).div(13);
     const bountiesReward = new BigNumber(2).div(13);
@@ -52,6 +53,9 @@ contract('FintechFansCrowdsale', function(accounts) {
 
         token = await FintechCoin.new();
         crowdsale = await FintechFansCrowdsale.new(startTime, endTime, rate, fintechFansWallet, bountiesWallet, foundersWallet, goal, cap, token.address, 0);
+        // let foo = await FintechFansCrowdsale.tokenContract();
+        // console.log(foo);
+        foundersVault = await crowdsale.foundersVault.call();
 
         await token.transferOwnership(crowdsale.address);
     });
@@ -109,7 +113,7 @@ contract('FintechFansCrowdsale', function(accounts) {
             const oldTotalSupply = await token.totalSupply();
             const oldBalanceFintechFans = await token.balanceOf.call(fintechFansWallet);
             const oldBalanceBounties = await token.balanceOf.call(bountiesWallet);
-            const oldBalanceFounders = await token.balanceOf.call(foundersWallet);
+            const oldBalanceFoundersVault = await token.balanceOf.call(foundersVault);
 
             wei = new BigNumber(wei);
             const expectedTokens = wei.div(rate).floor();
@@ -120,21 +124,21 @@ contract('FintechFansCrowdsale', function(accounts) {
 
             const balanceFintechFans = await token.balanceOf.call(fintechFansWallet);
             const balanceBounties = await token.balanceOf.call(bountiesWallet);
-            const balanceFounders = await token.balanceOf.call(foundersWallet);
+            const balanceFoundersVault = await token.balanceOf.call(foundersWallet);
 
             const currentBonusRate = await crowdsale.currentBonusRate();
             const totalSupply = await token.totalSupply();
 
             const expectedFintechFansReward = new BigNumber(expectedTokensIncludingBonus).mul(fintechFansReward).floor().add(oldBalanceFintechFans);
             const expectedBountiesReward = new BigNumber(expectedTokensIncludingBonus).mul(bountiesReward).floor().add(oldBalanceBounties);
-            const expectedFoundersReward = new BigNumber(expectedTokensIncludingBonus).mul(foundersReward).floor().add(oldBalanceFounders);
+            const expectedFoundersReward = new BigNumber(expectedTokensIncludingBonus).mul(foundersReward).floor().add(oldBalanceFoundersVault);
 
             currentBonusRate.should.be.bignumber.equal(expectedBonusRate);
 
             balance.should.be.bignumber.equal(new BigNumber(expectedTokensIncludingBonus));
             balanceFintechFans.should.be.bignumber.equal(expectedFintechFansReward);
             balanceBounties.should.be.bignumber.equal(expectedBountiesReward);
-            balanceFounders.should.be.bignumber.equal(expectedFoundersReward);
+            balanceFoundersVault.should.be.bignumber.equal(expectedFoundersReward);
 
             const expectedTotalSupply = expectedTokensIncludingBonus.add(expectedFintechFansReward).add(expectedBountiesReward).add(expectedFoundersReward);
             totalSupply.should.be.bignumber.equal(expectedTotalSupply);
