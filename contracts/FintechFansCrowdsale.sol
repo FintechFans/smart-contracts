@@ -62,16 +62,16 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
         /**
            @dev Constructor of the FintechFansCrowdsale contract
 
-           @param time (Solidity UNIX timestamp) from when it is allowed to buy FINC.
-           @param time (Solidity UNIX timestamp) until which it is allowed to buy FINC. (Should be larger than startTime)
-           @param Number of wei that needs to be spent to buy 1 * 10^(-18) FINC.
-           @param The wallet of FintechFans itself, to which some of the facilitating tokens will be sent.
-           @param The wallet used to pay out bounties, to which some of the facilitating tokens will be sent.
-           @param The wallet used for the founders, to which some of the facilitating tokens will be sent.
-           @param The minimum goal (in 1 * 10^(-18) tokens) that the Crowdsale needs to reach.
-           @param The maximum cap (in 1 * 10^(-18) tokens) that the Crowdsale can reach.
-           @param The address where the FintechCoin contract was deployed prior to creating this contract.
-           @param The amount (in 1 * 18^18 tokens) that was purchased during the presale.
+           @param _startTime time (Solidity UNIX timestamp) from when it is allowed to buy FINC.
+           @param _endTime time (Solidity UNIX timestamp) until which it is allowed to buy FINC. (Should be larger than startTime)
+           @param _rate Number of wei that needs to be spent to buy 1 * 10^(-18) FINC.
+           @param _wallet The wallet of FintechFans itself, to which some of the facilitating tokens will be sent.
+           @param _bountiesWallet The wallet used to pay out bounties, to which some of the facilitating tokens will be sent.
+           @param _foundersWallet The wallet used for the founders, to which some of the facilitating tokens will be sent.
+           @param _goal The minimum goal (in 1 * 10^(-18) tokens) that the Crowdsale needs to reach.
+           @param _cap The maximum cap (in 1 * 10^(-18) tokens) that the Crowdsale can reach.
+           @param _token The address where the FintechCoin contract was deployed prior to creating this contract.
+           @param _purchasedTokensRaisedDuringPresale The amount (in 1 * 18^18 tokens) that was purchased during the presale.
          */
         function FintechFansCrowdsale (
                 uint256 _startTime,
@@ -159,6 +159,7 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
 
         /**
            replaces CappedCrowdsale#validPurchase to add extra cap logic in tokens
+           @param purchasedTokens Amount of tokens that were purchased (in the smallest, 1 * 10^(-18) denomination)
            @return true if investors are allowed to purchase tokens at the moment.
         */
         function validPurchase(uint256 purchasedTokens) internal constant returns (bool) {
