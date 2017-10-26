@@ -147,7 +147,6 @@ contract('FintechFansCrowdsale', function(accounts) {
 
             [10, /*20, 30, 50,*/ 100, /*120, 200, 300, */500, 1000, /*1500, 2000, 5000,*/ 10000].forEach(function(wei){
             // [10].forEach(function(wei){
-                console.log("wei", wei);
                 it('should mint given amount of tokens to proper addresses when spending (' + wei + ') wei while already (' + purchasedTokensRaised.toString() + ') were purchased before', async function(){
                     await crowdsale.send(purchasedTokensRaised, {from: someOtherUserWallet});
                     await crowdsale.purchasedTokensRaised();
