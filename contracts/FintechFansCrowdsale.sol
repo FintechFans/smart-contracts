@@ -29,11 +29,6 @@ import './FintechCoin.sol';
 // TODO Pausable?
 contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale {
         /**
-           Address of the FintechCoin contract that was deployed prior to deploying this FintechFansCrowdsale conntract.
-         */
-        FintechCoin public tokenContract;
-
-        /**
            Address of the wallet of the founders.
            In this wallet, part of the facilitating tokens will be stored, and they will be locked for 24 months.
          */
@@ -214,5 +209,15 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
                 if(purchasedTokensRaised < (6 * oneTwelfthOfCap)) return 111/*.1111111111111112*/; // 10% discount
                 if(purchasedTokensRaised < (9 * oneTwelfthOfCap)) return 105/*.0526315789473684*/; // 5% discount
                 return 100;
+        }
+
+        /**
+         * TODO This function is added to have a wrapper for `foundersVault` working
+         * with Truffle to check if code is working correctly.
+         *
+         * Obviously, it would be a whole lot better to make the normal automatic getters work properly.
+         */
+        function foundersVaultAddress() public returns (address) {
+            return (address)(foundersVault);
         }
 }
