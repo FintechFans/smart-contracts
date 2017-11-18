@@ -11,7 +11,8 @@ import 'zeppelin-solidity/contracts/crowdsale/CappedCrowdsale.sol';
 import 'zeppelin-solidity/contracts/crowdsale/RefundableCrowdsale.sol';
 
 /* Vault tokens are locked in until 24 months for Founders. */
-import 'zeppelin-solidity/contracts/token/TokenTimelock.sol';
+/* import 'zeppelin-solidity/contracts/token/TokenTimelock.sol'; */
+import './FoundersVault.sol';
 
 /* Reference to the FintechCoin contract, whose tokens are sold. */
 import './FintechCoin.sol';
@@ -33,7 +34,7 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
            In this wallet, part of the facilitating tokens will be stored, and they will be locked for 24 months.
          */
         address public foundersWallet;
-        TokenTimelock public foundersVault;
+        FoundersVault public foundersVault;
 
         /**
            Address of the wallet used to pay out bounties.
@@ -100,7 +101,7 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
 
                 bountiesWallet = _bountiesWallet;
                 foundersWallet = _foundersWallet;
-                foundersVault = new TokenTimelock(_token, _foundersWallet, _endTime + 2 years);
+                foundersVault = new FoundersVault(_token, _foundersWallet, _endTime + 2 years);
         }
 
         /*

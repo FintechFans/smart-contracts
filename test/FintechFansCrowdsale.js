@@ -15,7 +15,7 @@ require('chai')
 
 const FintechFansCrowdsale = artifacts.require("FintechFansCrowdsale");
 const FintechCoin = artifacts.require("FintechCoin");
-const TokenTimelock = artifacts.require("./stubs/TokenTimelock");
+const FoundersVault = artifacts.require("FoundersVault");
 
 const StandardTokenMock = artifacts.require("./stubs/StandardTokenMock");
 
@@ -59,7 +59,7 @@ contract('FintechFansCrowdsale', function(accounts) {
         await advanceBlock();
 
         console.log(crowdsale);
-        console.log(TokenTimelock.at(await crowdsale.foundersVaultAddress()));
+        console.log(FoundersVault.at(await crowdsale.foundersVaultAddress()));
         // let foo = FintechCoin.at(await crowdsale.token.call());
         // let foo = FintechCoin.at(await crowdsale.token());
         // console.log(foo);
