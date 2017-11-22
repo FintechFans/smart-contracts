@@ -26,11 +26,6 @@ import './FintechCoin.sol';
 // TODO Pausable?
 contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale {
         /**
-           Address of the FintechCoin contract that was deployed prior to deploying this FintechFansCrowdsale conntract.
-         */
-        FintechCoin tokenContract;
-
-        /**
            Address of the wallet of the founders.
            In this wallet, part of the facilitating tokens will be stored, and they will be locked for 24 months.
          */
@@ -64,7 +59,7 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
 
            @param _startTime time (Solidity UNIX timestamp) from when it is allowed to buy FINC.
            @param _endTime time (Solidity UNIX timestamp) until which it is allowed to buy FINC. (Should be larger than startTime)
-           @param _rate Number of wei that needs to be spent to buy 1 * 10^(-18) FINC.
+           @param _rate Number of tokens created per ether. (Since Ether and FintechCoin use the same number of decimal places, this can be read as direct conversion rate of Ether -> FintechCoin.)
            @param _wallet The wallet of FintechFans itself, to which some of the facilitating tokens will be sent.
            @param _bountiesWallet The wallet used to pay out bounties, to which some of the facilitating tokens will be sent.
            @param _foundersWallet The wallet used for the founders, to which some of the facilitating tokens will be sent.
@@ -76,13 +71,13 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
         function FintechFansCrowdsale (
                 uint256 _startTime,
                 uint256 _endTime,
-                uint256 _rate, // amount of wei needs to be paid for a single 1e-18th token.
+                uint256 _rate,
                 address _wallet,
                 address _bountiesWallet,
                 address _foundersWallet,
                 uint256 _goal,
                 uint256 _cap,
-                FintechCoin _token,
+                address _token,
                 uint256 _purchasedTokensRaisedDuringPresale
                 )
                 Crowdsale(_startTime, _endTime, _rate, _wallet)
@@ -93,7 +88,7 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
 
                 bountiesWallet = _bountiesWallet;
                 foundersWallet = _foundersWallet;
-                token = _token;
+                token = FintechCoin(_token);
                 weiRaised = 0;
 
                 purchasedTokensRaisedDuringPresale = _purchasedTokensRaisedDuringPresale;

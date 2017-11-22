@@ -1,40 +1,17 @@
 pragma solidity ^0.4.13;
 
-contract Ownable {
-  address public owner;
+contract ERC20Basic {
+  uint256 public totalSupply;
+  function balanceOf(address who) public constant returns (uint256);
+  function transfer(address to, uint256 value) public returns (bool);
+  event Transfer(address indexed from, address indexed to, uint256 value);
+}
 
-
-  event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
-
-
-  /**
-   * @dev The Ownable constructor sets the original `owner` of the contract to the sender
-   * account.
-   */
-  function Ownable() {
-    owner = msg.sender;
-  }
-
-
-  /**
-   * @dev Throws if called by any account other than the owner.
-   */
-  modifier onlyOwner() {
-    require(msg.sender == owner);
-    _;
-  }
-
-
-  /**
-   * @dev Allows the current owner to transfer control of the contract to a newOwner.
-   * @param newOwner The address to transfer ownership to.
-   */
-  function transferOwnership(address newOwner) onlyOwner public {
-    require(newOwner != address(0));
-    OwnershipTransferred(owner, newOwner);
-    owner = newOwner;
-  }
-
+contract ERC20 is ERC20Basic {
+  function allowance(address owner, address spender) public constant returns (uint256);
+  function transferFrom(address from, address to, uint256 value) public returns (bool);
+  function approve(address spender, uint256 value) public returns (bool);
+  event Approval(address indexed owner, address indexed spender, uint256 value);
 }
 
 library SafeMath {
@@ -157,6 +134,179 @@ contract Crowdsale {
 
 }
 
+contract CappedCrowdsale is Crowdsale {
+  using SafeMath for uint256;
+
+  uint256 public cap;
+
+  function CappedCrowdsale(uint256 _cap) {
+    require(_cap > 0);
+    cap = _cap;
+  }
+
+  // overriding Crowdsale#validPurchase to add extra cap logic
+  // @return true if investors can buy at the moment
+  function validPurchase() internal constant returns (bool) {
+    bool withinCap = weiRaised.add(msg.value) <= cap;
+    return super.validPurchase() && withinCap;
+  }
+
+  // overriding Crowdsale#hasEnded to add cap logic
+  // @return true if crowdsale event has ended
+  function hasEnded() public constant returns (bool) {
+    bool capReached = weiRaised >= cap;
+    return super.hasEnded() || capReached;
+  }
+
+}
+
+contract BasicToken is ERC20Basic {
+  using SafeMath for uint256;
+
+  mapping(address => uint256) balances;
+
+  /**
+  * @dev transfer token for a specified address
+  * @param _to The address to transfer to.
+  * @param _value The amount to be transferred.
+  */
+  function transfer(address _to, uint256 _value) public returns (bool) {
+    require(_to != address(0));
+
+    // SafeMath.sub will throw if there is not enough balance.
+    balances[msg.sender] = balances[msg.sender].sub(_value);
+    balances[_to] = balances[_to].add(_value);
+    Transfer(msg.sender, _to, _value);
+    return true;
+  }
+
+  /**
+  * @dev Gets the balance of the specified address.
+  * @param _owner The address to query the the balance of.
+  * @return An uint256 representing the amount owned by the passed address.
+  */
+  function balanceOf(address _owner) public constant returns (uint256 balance) {
+    return balances[_owner];
+  }
+
+}
+
+contract StandardToken is ERC20, BasicToken {
+
+  mapping (address => mapping (address => uint256)) allowed;
+
+
+  /**
+   * @dev Transfer tokens from one address to another
+   * @param _from address The address which you want to send tokens from
+   * @param _to address The address which you want to transfer to
+   * @param _value uint256 the amount of tokens to be transferred
+   */
+  function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
+    require(_to != address(0));
+
+    uint256 _allowance = allowed[_from][msg.sender];
+
+    // Check is not needed because sub(_allowance, _value) will already throw if this condition is not met
+    // require (_value <= _allowance);
+
+    balances[_from] = balances[_from].sub(_value);
+    balances[_to] = balances[_to].add(_value);
+    allowed[_from][msg.sender] = _allowance.sub(_value);
+    Transfer(_from, _to, _value);
+    return true;
+  }
+
+  /**
+   * @dev Approve the passed address to spend the specified amount of tokens on behalf of msg.sender.
+   *
+   * Beware that changing an allowance with this method brings the risk that someone may use both the old
+   * and the new allowance by unfortunate transaction ordering. One possible solution to mitigate this
+   * race condition is to first reduce the spender's allowance to 0 and set the desired value afterwards:
+   * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
+   * @param _spender The address which will spend the funds.
+   * @param _value The amount of tokens to be spent.
+   */
+  function approve(address _spender, uint256 _value) public returns (bool) {
+    allowed[msg.sender][_spender] = _value;
+    Approval(msg.sender, _spender, _value);
+    return true;
+  }
+
+  /**
+   * @dev Function to check the amount of tokens that an owner allowed to a spender.
+   * @param _owner address The address which owns the funds.
+   * @param _spender address The address which will spend the funds.
+   * @return A uint256 specifying the amount of tokens still available for the spender.
+   */
+  function allowance(address _owner, address _spender) public constant returns (uint256 remaining) {
+    return allowed[_owner][_spender];
+  }
+
+  /**
+   * approve should be called when allowed[_spender] == 0. To increment
+   * allowed value is better to use this function to avoid 2 calls (and wait until
+   * the first transaction is mined)
+   * From MonolithDAO Token.sol
+   */
+  function increaseApproval (address _spender, uint _addedValue)
+    returns (bool success) {
+    allowed[msg.sender][_spender] = allowed[msg.sender][_spender].add(_addedValue);
+    Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
+    return true;
+  }
+
+  function decreaseApproval (address _spender, uint _subtractedValue)
+    returns (bool success) {
+    uint oldValue = allowed[msg.sender][_spender];
+    if (_subtractedValue > oldValue) {
+      allowed[msg.sender][_spender] = 0;
+    } else {
+      allowed[msg.sender][_spender] = oldValue.sub(_subtractedValue);
+    }
+    Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
+    return true;
+  }
+
+}
+
+contract Ownable {
+  address public owner;
+
+
+  event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+
+
+  /**
+   * @dev The Ownable constructor sets the original `owner` of the contract to the sender
+   * account.
+   */
+  function Ownable() {
+    owner = msg.sender;
+  }
+
+
+  /**
+   * @dev Throws if called by any account other than the owner.
+   */
+  modifier onlyOwner() {
+    require(msg.sender == owner);
+    _;
+  }
+
+
+  /**
+   * @dev Allows the current owner to transfer control of the contract to a newOwner.
+   * @param newOwner The address to transfer ownership to.
+   */
+  function transferOwnership(address newOwner) onlyOwner public {
+    require(newOwner != address(0));
+    OwnershipTransferred(owner, newOwner);
+    owner = newOwner;
+  }
+
+}
+
 contract FinalizableCrowdsale is Crowdsale, Ownable {
   using SafeMath for uint256;
 
@@ -187,30 +337,50 @@ contract FinalizableCrowdsale is Crowdsale, Ownable {
   }
 }
 
-contract CappedCrowdsale is Crowdsale {
+contract RefundVault is Ownable {
   using SafeMath for uint256;
 
-  uint256 public cap;
+  enum State { Active, Refunding, Closed }
 
-  function CappedCrowdsale(uint256 _cap) {
-    require(_cap > 0);
-    cap = _cap;
+  mapping (address => uint256) public deposited;
+  address public wallet;
+  State public state;
+
+  event Closed();
+  event RefundsEnabled();
+  event Refunded(address indexed beneficiary, uint256 weiAmount);
+
+  function RefundVault(address _wallet) {
+    require(_wallet != 0x0);
+    wallet = _wallet;
+    state = State.Active;
   }
 
-  // overriding Crowdsale#validPurchase to add extra cap logic
-  // @return true if investors can buy at the moment
-  function validPurchase() internal constant returns (bool) {
-    bool withinCap = weiRaised.add(msg.value) <= cap;
-    return super.validPurchase() && withinCap;
+  function deposit(address investor) onlyOwner public payable {
+    require(state == State.Active);
+    deposited[investor] = deposited[investor].add(msg.value);
   }
 
-  // overriding Crowdsale#hasEnded to add cap logic
-  // @return true if crowdsale event has ended
-  function hasEnded() public constant returns (bool) {
-    bool capReached = weiRaised >= cap;
-    return super.hasEnded() || capReached;
+  function close() onlyOwner public {
+    require(state == State.Active);
+    state = State.Closed;
+    Closed();
+    wallet.transfer(this.balance);
   }
 
+  function enableRefunds() onlyOwner public {
+    require(state == State.Active);
+    state = State.Refunding;
+    RefundsEnabled();
+  }
+
+  function refund(address investor) public {
+    require(state == State.Refunding);
+    uint256 depositedValue = deposited[investor];
+    deposited[investor] = 0;
+    investor.transfer(depositedValue);
+    Refunded(investor, depositedValue);
+  }
 }
 
 contract Pausable is Ownable {
@@ -253,42 +423,41 @@ contract Pausable is Ownable {
   }
 }
 
-contract ERC20Basic {
-  uint256 public totalSupply;
-  function balanceOf(address who) public constant returns (uint256);
-  function transfer(address to, uint256 value) public returns (bool);
-  event Transfer(address indexed from, address indexed to, uint256 value);
-}
+contract MintableToken is StandardToken, Ownable {
+  event Mint(address indexed to, uint256 amount);
+  event MintFinished();
 
-contract BasicToken is ERC20Basic {
-  using SafeMath for uint256;
+  bool public mintingFinished = false;
 
-  mapping(address => uint256) balances;
+
+  modifier canMint() {
+    require(!mintingFinished);
+    _;
+  }
 
   /**
-  * @dev transfer token for a specified address
-  * @param _to The address to transfer to.
-  * @param _value The amount to be transferred.
-  */
-  function transfer(address _to, uint256 _value) public returns (bool) {
-    require(_to != address(0));
-
-    // SafeMath.sub will throw if there is not enough balance.
-    balances[msg.sender] = balances[msg.sender].sub(_value);
-    balances[_to] = balances[_to].add(_value);
-    Transfer(msg.sender, _to, _value);
+   * @dev Function to mint tokens
+   * @param _to The address that will receive the minted tokens.
+   * @param _amount The amount of tokens to mint.
+   * @return A boolean that indicates if the operation was successful.
+   */
+  function mint(address _to, uint256 _amount) onlyOwner canMint public returns (bool) {
+    totalSupply = totalSupply.add(_amount);
+    balances[_to] = balances[_to].add(_amount);
+    Mint(_to, _amount);
+    Transfer(0x0, _to, _amount);
     return true;
   }
 
   /**
-  * @dev Gets the balance of the specified address.
-  * @param _owner The address to query the the balance of.
-  * @return An uint256 representing the amount owned by the passed address.
-  */
-  function balanceOf(address _owner) public constant returns (uint256 balance) {
-    return balances[_owner];
+   * @dev Function to stop minting new tokens.
+   * @return True if the operation was successful.
+   */
+  function finishMinting() onlyOwner public returns (bool) {
+    mintingFinished = true;
+    MintFinished();
+    return true;
   }
-
 }
 
 contract RefundableCrowdsale is FinalizableCrowdsale {
@@ -339,11 +508,6 @@ contract RefundableCrowdsale is FinalizableCrowdsale {
 }
 
 contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale {
-        /**
-           Address of the FintechCoin contract that was deployed prior to deploying this FintechFansCrowdsale conntract.
-         */
-        FintechCoin tokenContract;
-
         /**
            Address of the wallet of the founders.
            In this wallet, part of the facilitating tokens will be stored, and they will be locked for 24 months.
@@ -396,7 +560,7 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
                 address _foundersWallet,
                 uint256 _goal,
                 uint256 _cap,
-                FintechCoin _token,
+                address _token,
                 uint256 _purchasedTokensRaisedDuringPresale
                 )
                 Crowdsale(_startTime, _endTime, _rate, _wallet)
@@ -407,7 +571,7 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
 
                 bountiesWallet = _bountiesWallet;
                 foundersWallet = _foundersWallet;
-                token = _token;
+                token = FintechCoin(_token);
                 weiRaised = 0;
 
                 purchasedTokensRaisedDuringPresale = _purchasedTokensRaisedDuringPresale;
@@ -528,239 +692,19 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
 contract TheFintechFansCrowdsale is FintechFansCrowdsale {
     function TheFintechFansCrowdsale()
         FintechFansCrowdsale(
-            1511345700, // @param _startTime time (Solidity UNIX timestamp) from when it is allowed to buy FINC.
-            1511347800, // @param _endTime time (Solidity UNIX timestamp) until which it is allowed to buy FINC. (Should be larger than startTime)
+            1511380200, // @param _startTime time (Solidity UNIX timestamp) from when it is allowed to buy FINC.
+            1511384400, // @param _endTime time (Solidity UNIX timestamp) until which it is allowed to buy FINC. (Should be larger than startTime)
             2, // @param _rate Number of wei that needs to be spent to buy 1 * 10^(-18) FINC.
             0xd5D29f18B8C2C7157B6BF38111C9318b9604BdED, // @param _wallet The wallet of FintechFans itself, to which some of the facilitating tokens will be sent.
             0x6B1964119841f3f5363D7EA08120642FE487410E, // @param _bountiesWallet The wallet used to pay out bounties, to which some of the facilitating tokens will be sent.
             0x9a123fDd708eD0931Fb4938C5b2E2462B6D23390, // @param _foundersWallet The wallet used for the founders, to which some of the facilitating tokens will be sent.
             1e16, // @param _goal The minimum goal (in 1 * 10^(-18) tokens) that the Crowdsale needs to reach.
             12e16, // @param _cap The maximum cap (in 1 * 10^(-18) tokens) that the Crowdsale can reach.
-            FintechCoin(0xaaC5b7048114d70b759E9EA17AFA4Ff969931a4a), // @param _token The address where the FintechCoin contract was deployed prior to creating this contract.
+            0xaaC5b7048114d70b759E9EA17AFA4Ff969931a4a, // @param _token The address where the FintechCoin contract was deployed prior to creating this contract.
             0  // @param _purchasedTokensRaisedDuringPresale The amount (in 1 * 18^18 tokens) that was purchased during the presale.
             )
     {
     }
-}
-
-contract RefundVault is Ownable {
-  using SafeMath for uint256;
-
-  enum State { Active, Refunding, Closed }
-
-  mapping (address => uint256) public deposited;
-  address public wallet;
-  State public state;
-
-  event Closed();
-  event RefundsEnabled();
-  event Refunded(address indexed beneficiary, uint256 weiAmount);
-
-  function RefundVault(address _wallet) {
-    require(_wallet != 0x0);
-    wallet = _wallet;
-    state = State.Active;
-  }
-
-  function deposit(address investor) onlyOwner public payable {
-    require(state == State.Active);
-    deposited[investor] = deposited[investor].add(msg.value);
-  }
-
-  function close() onlyOwner public {
-    require(state == State.Active);
-    state = State.Closed;
-    Closed();
-    wallet.transfer(this.balance);
-  }
-
-  function enableRefunds() onlyOwner public {
-    require(state == State.Active);
-    state = State.Refunding;
-    RefundsEnabled();
-  }
-
-  function refund(address investor) public {
-    require(state == State.Refunding);
-    uint256 depositedValue = deposited[investor];
-    deposited[investor] = 0;
-    investor.transfer(depositedValue);
-    Refunded(investor, depositedValue);
-  }
-}
-
-contract ERC20 is ERC20Basic {
-  function allowance(address owner, address spender) public constant returns (uint256);
-  function transferFrom(address from, address to, uint256 value) public returns (bool);
-  function approve(address spender, uint256 value) public returns (bool);
-  event Approval(address indexed owner, address indexed spender, uint256 value);
-}
-
-contract StandardToken is ERC20, BasicToken {
-
-  mapping (address => mapping (address => uint256)) allowed;
-
-
-  /**
-   * @dev Transfer tokens from one address to another
-   * @param _from address The address which you want to send tokens from
-   * @param _to address The address which you want to transfer to
-   * @param _value uint256 the amount of tokens to be transferred
-   */
-  function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
-    require(_to != address(0));
-
-    uint256 _allowance = allowed[_from][msg.sender];
-
-    // Check is not needed because sub(_allowance, _value) will already throw if this condition is not met
-    // require (_value <= _allowance);
-
-    balances[_from] = balances[_from].sub(_value);
-    balances[_to] = balances[_to].add(_value);
-    allowed[_from][msg.sender] = _allowance.sub(_value);
-    Transfer(_from, _to, _value);
-    return true;
-  }
-
-  /**
-   * @dev Approve the passed address to spend the specified amount of tokens on behalf of msg.sender.
-   *
-   * Beware that changing an allowance with this method brings the risk that someone may use both the old
-   * and the new allowance by unfortunate transaction ordering. One possible solution to mitigate this
-   * race condition is to first reduce the spender's allowance to 0 and set the desired value afterwards:
-   * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
-   * @param _spender The address which will spend the funds.
-   * @param _value The amount of tokens to be spent.
-   */
-  function approve(address _spender, uint256 _value) public returns (bool) {
-    allowed[msg.sender][_spender] = _value;
-    Approval(msg.sender, _spender, _value);
-    return true;
-  }
-
-  /**
-   * @dev Function to check the amount of tokens that an owner allowed to a spender.
-   * @param _owner address The address which owns the funds.
-   * @param _spender address The address which will spend the funds.
-   * @return A uint256 specifying the amount of tokens still available for the spender.
-   */
-  function allowance(address _owner, address _spender) public constant returns (uint256 remaining) {
-    return allowed[_owner][_spender];
-  }
-
-  /**
-   * approve should be called when allowed[_spender] == 0. To increment
-   * allowed value is better to use this function to avoid 2 calls (and wait until
-   * the first transaction is mined)
-   * From MonolithDAO Token.sol
-   */
-  function increaseApproval (address _spender, uint _addedValue)
-    returns (bool success) {
-    allowed[msg.sender][_spender] = allowed[msg.sender][_spender].add(_addedValue);
-    Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
-    return true;
-  }
-
-  function decreaseApproval (address _spender, uint _subtractedValue)
-    returns (bool success) {
-    uint oldValue = allowed[msg.sender][_spender];
-    if (_subtractedValue > oldValue) {
-      allowed[msg.sender][_spender] = 0;
-    } else {
-      allowed[msg.sender][_spender] = oldValue.sub(_subtractedValue);
-    }
-    Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
-    return true;
-  }
-
-}
-
-contract MintableToken is StandardToken, Ownable {
-  event Mint(address indexed to, uint256 amount);
-  event MintFinished();
-
-  bool public mintingFinished = false;
-
-
-  modifier canMint() {
-    require(!mintingFinished);
-    _;
-  }
-
-  /**
-   * @dev Function to mint tokens
-   * @param _to The address that will receive the minted tokens.
-   * @param _amount The amount of tokens to mint.
-   * @return A boolean that indicates if the operation was successful.
-   */
-  function mint(address _to, uint256 _amount) onlyOwner canMint public returns (bool) {
-    totalSupply = totalSupply.add(_amount);
-    balances[_to] = balances[_to].add(_amount);
-    Mint(_to, _amount);
-    Transfer(0x0, _to, _amount);
-    return true;
-  }
-
-  /**
-   * @dev Function to stop minting new tokens.
-   * @return True if the operation was successful.
-   */
-  function finishMinting() onlyOwner public returns (bool) {
-    mintingFinished = true;
-    MintFinished();
-    return true;
-  }
-}
-
-contract BurnableToken is StandardToken {
-
-    event Burn(address indexed burner, uint256 value);
-
-    /**
-     * @dev Burns a specific amount of tokens.
-     * @param _value The amount of token to be burned.
-     */
-    function burn(uint256 _value) public {
-        require(_value > 0);
-
-        address burner = msg.sender;
-        balances[burner] = balances[burner].sub(_value);
-        totalSupply = totalSupply.sub(_value);
-        Burn(burner, _value);
-    }
-}
-
-contract ApprovedBurnableToken is BurnableToken {
-
-        /**
-           Sent when `burner` burns some `value` of `owners` tokens.
-        */
-        event BurnFrom(address indexed owner, // The address whose tokens were burned.
-                       address indexed burner, // The address that executed the `burnFrom` call
-                       uint256 value           // The amount of tokens that were burned.
-                );
-
-        /**
-           @dev Burns a specific amount of tokens of another account that `msg.sender`
-           was approved to burn tokens for using `approveBurn` earlier.
-           @param _owner The address to burn tokens from.
-           @param _value The amount of token to be burned.
-        */
-        function burnFrom(address _owner, uint256 _value) public {
-                require(_value > 0);
-                require(_value <= balances[_owner]);
-                require(_value <= allowed[_owner][msg.sender]);
-                // no need to require value <= totalSupply, since that would imply the
-                // sender's balance is greater than the totalSupply, which *should* be an assertion failure
-
-                address burner = msg.sender;
-                balances[_owner] = balances[_owner].sub(_value);
-                allowed[_owner][burner] = allowed[_owner][burner].sub(_value);
-                totalSupply = totalSupply.sub(_value);
-
-                BurnFrom(_owner, burner, _value);
-                Burn(_owner, _value);
-        }
 }
 
 contract UnlockedAfterMintingToken is MintableToken {
@@ -826,6 +770,57 @@ contract UnlockedAfterMintingToken is MintableToken {
     }
 
     // TODO Prevent burning?
+}
+
+contract BurnableToken is StandardToken {
+
+    event Burn(address indexed burner, uint256 value);
+
+    /**
+     * @dev Burns a specific amount of tokens.
+     * @param _value The amount of token to be burned.
+     */
+    function burn(uint256 _value) public {
+        require(_value > 0);
+
+        address burner = msg.sender;
+        balances[burner] = balances[burner].sub(_value);
+        totalSupply = totalSupply.sub(_value);
+        Burn(burner, _value);
+    }
+}
+
+contract ApprovedBurnableToken is BurnableToken {
+
+        /**
+           Sent when `burner` burns some `value` of `owners` tokens.
+        */
+        event BurnFrom(address indexed owner, // The address whose tokens were burned.
+                       address indexed burner, // The address that executed the `burnFrom` call
+                       uint256 value           // The amount of tokens that were burned.
+                );
+
+        /**
+           @dev Burns a specific amount of tokens of another account that `msg.sender`
+           was approved to burn tokens for using `approveBurn` earlier.
+           @param _owner The address to burn tokens from.
+           @param _value The amount of token to be burned.
+        */
+        function burnFrom(address _owner, uint256 _value) public {
+                require(_value > 0);
+                require(_value <= balances[_owner]);
+                require(_value <= allowed[_owner][msg.sender]);
+                // no need to require value <= totalSupply, since that would imply the
+                // sender's balance is greater than the totalSupply, which *should* be an assertion failure
+
+                address burner = msg.sender;
+                balances[_owner] = balances[_owner].sub(_value);
+                allowed[_owner][burner] = allowed[_owner][burner].sub(_value);
+                totalSupply = totalSupply.sub(_value);
+
+                BurnFrom(_owner, burner, _value);
+                Burn(_owner, _value);
+        }
 }
 
 contract FintechCoin is UnlockedAfterMintingToken, ApprovedBurnableToken {
