@@ -2,6 +2,11 @@
 
 This repository contains the Smart Contracts that are in use by the FintechFans Marketplace and the Decentralized Crowdsale leading up to it.
 
+The Smart Contract source code can be found in 'contracts/'.
+The `flatten_contracts.sh` script is used to combine them together into the `FintechFansCrowdsaleFlattened.sol` file, which is the Solidity file that is deployed on the blockchain.
+
+The reason to combine everything together in one file like this, is to be able to upload it to Etherscan for source code verification.
+
 
 
 ## Technical Details
