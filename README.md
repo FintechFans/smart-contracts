@@ -2,7 +2,7 @@
 
 This repository contains the Smart Contracts that are in use by the FintechFans Marketplace and the Decentralized Crowdsale leading up to it.
 
-The Smart Contract source code can be found in 'contracts/'.
+The Smart Contract source code can be found in `contracts/`.
 The `flatten_contracts.sh` script is used to combine them together into the `FintechFansCrowdsaleFlattened.sol` file, which is the Solidity file that is deployed on the blockchain.
 
 The reason to combine everything together in one file like this, is to be able to upload it to Etherscan for source code verification.
@@ -28,4 +28,4 @@ The reason to combine everything together in one file like this, is to be able t
   - If more than the minimum goal of tokens was purchased, the process continues:
   - Admins then finalize the crowdsale, which: 
     - Extracts the stored Ether.
-    - Sets the `mintable` property of the FintecCoin contract to false, which also means that from that point onward, tokens can be traded and used.
+    - Sets the `mintable` property of the FintechCoin contract to false, which also means that from that point onward, tokens can be traded and used.
