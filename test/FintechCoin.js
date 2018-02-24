@@ -56,7 +56,7 @@ contract('FintechCoin', function(accounts) {
         });
 
         it("Is not tradeable while still mintable", async function(){
-            await token.transfer(account_two, amount, {from: account_one}).should.be.rejectedWith(EVMThrow);
+            await token.transfer(account_two, amount, {from: account_one}).should.be.rejectedWith(EVMRevert);
             // TODO similar tests for transferFrom, approve.
         });
 

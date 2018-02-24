@@ -25,6 +25,7 @@ import './FintechCoin.sol';
 */
 // TODO Pausable?
 contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale {
+  event PurchasedTokensRaised(address by, uint256 ptr, uint256 bonus);
         /**
            Address of the wallet of the founders.
            In this wallet, part of the facilitating tokens will be stored, and they will be locked for 24 months.
@@ -93,6 +94,7 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
 
                 purchasedTokensRaisedDuringPresale = _purchasedTokensRaisedDuringPresale;
                 purchasedTokensRaised = purchasedTokensRaisedDuringPresale;
+                PurchasedTokensRaised(msg.sender, purchasedTokensRaised, 0);
 
                 oneTwelfthOfCap = _cap / 12;
         }
@@ -125,6 +127,7 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
                 // update state
                 weiRaised = weiRaised.add(weiAmount);
                 purchasedTokensRaised = purchasedTokensRaised.add(purchasedTokens);
+                PurchasedTokensRaised(msg.sender, purchasedTokensRaised, currentBonusRate());
 
                 // Mint tokens for beneficiary
                 token.mint(beneficiary, purchasedTokens);
