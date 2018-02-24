@@ -26,13 +26,6 @@ library SafeMath {
   }
 }
 
-contract ERC20Basic {
-  uint256 public totalSupply;
-  function balanceOf(address who) public constant returns (uint256);
-  function transfer(address to, uint256 value) public returns (bool);
-  event Transfer(address indexed from, address indexed to, uint256 value);
-}
-
 contract Ownable {
   address public owner;
 
@@ -68,6 +61,13 @@ contract Ownable {
     owner = newOwner;
   }
 
+}
+
+contract ERC20Basic {
+  uint256 public totalSupply;
+  function balanceOf(address who) public constant returns (uint256);
+  function transfer(address to, uint256 value) public returns (bool);
+  event Transfer(address indexed from, address indexed to, uint256 value);
 }
 
 contract BasicToken is ERC20Basic {
@@ -242,6 +242,39 @@ contract MintableToken is StandardToken, Ownable {
   }
 }
 
+contract ApprovedBurnableToken is BurnableToken {
+
+        /**
+           Sent when `burner` burns some `value` of `owners` tokens.
+        */
+        event BurnFrom(address indexed owner, // The address whose tokens were burned.
+                       address indexed burner, // The address that executed the `burnFrom` call
+                       uint256 value           // The amount of tokens that were burned.
+                );
+
+        /**
+           @dev Burns a specific amount of tokens of another account that `msg.sender`
+           was approved to burn tokens for using `approveBurn` earlier.
+           @param _owner The address to burn tokens from.
+           @param _value The amount of token to be burned.
+        */
+        function burnFrom(address _owner, uint256 _value) public {
+                require(_value > 0);
+                require(_value <= balances[_owner]);
+                require(_value <= allowed[_owner][msg.sender]);
+                // no need to require value <= totalSupply, since that would imply the
+                // sender's balance is greater than the totalSupply, which *should* be an assertion failure
+
+                address burner = msg.sender;
+                balances[_owner] = balances[_owner].sub(_value);
+                allowed[_owner][burner] = allowed[_owner][burner].sub(_value);
+                totalSupply = totalSupply.sub(_value);
+
+                BurnFrom(_owner, burner, _value);
+                Burn(_owner, _value);
+        }
+}
+
 contract UnlockedAfterMintingToken is MintableToken {
 
     /**
@@ -305,39 +338,6 @@ contract UnlockedAfterMintingToken is MintableToken {
     }
 
     // TODO Prevent burning?
-}
-
-contract ApprovedBurnableToken is BurnableToken {
-
-        /**
-           Sent when `burner` burns some `value` of `owners` tokens.
-        */
-        event BurnFrom(address indexed owner, // The address whose tokens were burned.
-                       address indexed burner, // The address that executed the `burnFrom` call
-                       uint256 value           // The amount of tokens that were burned.
-                );
-
-        /**
-           @dev Burns a specific amount of tokens of another account that `msg.sender`
-           was approved to burn tokens for using `approveBurn` earlier.
-           @param _owner The address to burn tokens from.
-           @param _value The amount of token to be burned.
-        */
-        function burnFrom(address _owner, uint256 _value) public {
-                require(_value > 0);
-                require(_value <= balances[_owner]);
-                require(_value <= allowed[_owner][msg.sender]);
-                // no need to require value <= totalSupply, since that would imply the
-                // sender's balance is greater than the totalSupply, which *should* be an assertion failure
-
-                address burner = msg.sender;
-                balances[_owner] = balances[_owner].sub(_value);
-                allowed[_owner][burner] = allowed[_owner][burner].sub(_value);
-                totalSupply = totalSupply.sub(_value);
-
-                BurnFrom(_owner, burner, _value);
-                Burn(_owner, _value);
-        }
 }
 
 contract FintechCoin is UnlockedAfterMintingToken, ApprovedBurnableToken {
