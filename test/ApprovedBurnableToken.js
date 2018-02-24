@@ -40,7 +40,7 @@ contract('ApprovedBurnableToken', function (accounts) {
 
     it('cannot burn more tokens than your balance', async function () {
         await token.burn(2000, { from: accounts[0] })
-            .should.be.rejectedWith(EVMThrow);
+            .should.be.rejectedWith(EVMRevert);
     });
 
     it('burner should be able to burn tokens when allowed by owner', async function () {
