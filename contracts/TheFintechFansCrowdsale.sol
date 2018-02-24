@@ -3,7 +3,7 @@ pragma solidity ^0.4.11;
 import './FintechFansCrowdsale.sol';
 
 contract TheFintechFansCrowdsale is FintechFansCrowdsale {
-    function TheFintechFansCrowdsale()
+    function TheFintechFansCrowdsale() public
         FintechFansCrowdsale(
             1511380200, // _startTime time (Solidity UNIX timestamp) from when it is allowed to buy FINC.
             1511384400, // _endTime time (Solidity UNIX timestamp) until which it is allowed to buy FINC. (Should be larger than startTime)

@@ -80,7 +80,7 @@ contract FintechFansCrowdsale is Pausable, RefundableCrowdsale, CappedCrowdsale 
                 uint256 _cap,
                 address _token,
                 uint256 _purchasedTokensRaisedDuringPresale
-                )
+                ) public
                 Crowdsale(_startTime, _endTime, _rate, _wallet)
                 RefundableCrowdsale(_goal)
                 CappedCrowdsale(_cap)

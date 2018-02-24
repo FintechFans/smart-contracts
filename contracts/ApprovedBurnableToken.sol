@@ -1,6 +1,7 @@
 pragma solidity ^0.4.11;
 
 import "zeppelin-solidity/contracts/token/BurnableToken.sol";
+import "zeppelin-solidity/contracts/token/StandardToken.sol";
 /**
    @title Expanded BurnableToken with an Approval system.
 
@@ -9,7 +10,7 @@ import "zeppelin-solidity/contracts/token/BurnableToken.sol";
    @dev To approve someone to burn some of your tokens, you should call `approve`.
    @dev This allows them to either `transferFrom(your_address, amount_of_tokens)` or `burnFrom(your_address, amount_of_tokens)`.
 */
-contract ApprovedBurnableToken is BurnableToken {
+contract ApprovedBurnableToken is BurnableToken, StandardToken {
 
         /**
            Sent when `burner` burns some `value` of `owners` tokens.
