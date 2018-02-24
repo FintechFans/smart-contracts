@@ -5,6 +5,7 @@ import {advanceBlock} from './helpers/advanceToBlock';
 import {increaseTimeTo, duration} from './helpers/increaseTime';
 import latestTime from './helpers/latestTime';
 import EVMThrow from './helpers/EVMThrow';
+import EVMRevert from './helpers/EVMRevert';
 
 const BigNumber = web3.BigNumber;
 
@@ -63,11 +64,11 @@ contract('FintechFansCrowdsale', function(accounts) {
 
     describe('creating a valid crowdsale', async function() {
         it('should fail if cap lower than goal', async function() {
-            await FintechFansCrowdsale.new(startTime, endTime, rate, fintechFansWallet, foundersWallet, goal, 1, token.address).should.be.rejectedWith(EVMThrow);
+            await FintechFansCrowdsale.new(startTime, endTime, rate, fintechFansWallet, foundersWallet, goal, 1, token.address).should.be.rejectedWith(EVMRevert);
         });
         it('should fail when given non-FINC token address', async function() {
             let fakeToken = await StandardTokenMock.new();
-            await FintechFansCrowdsale.new(startTime, endTime, rate, fintechFansWallet, foundersWallet, goal, 1, fakeToken.address).should.be.rejectedWith(EVMThrow);
+            await FintechFansCrowdsale.new(startTime, endTime, rate, fintechFansWallet, foundersWallet, goal, 1, fakeToken.address).should.be.rejectedWith(EVMRevert);
         });
     });
 
@@ -83,7 +84,7 @@ contract('FintechFansCrowdsale', function(accounts) {
 
         it('does not accept payments when paused', async function() {
             await crowdsale.pause().should.be.fulfilled;
-            await crowdsale.send(lessThanCap).should.be.rejectedWith(EVMThrow);
+            await crowdsale.send(lessThanCap).should.be.rejectedWith(EVMRevert);
         });
     });
 
@@ -145,8 +146,8 @@ contract('FintechFansCrowdsale', function(accounts) {
             let expectedBonusRate = info[1];
             let purchasedTokensRaised = new BigNumber(info[0]).mul(0.8).mul(new BigNumber(10).pow(18)).mul(rate);
 
-            [10, /*20, 30, 50,*/ 100, /*120, 200, 300, */500, 1000, /*1500, 2000, 5000,*/ 10000].forEach(function(wei){
-            // [10].forEach(function(wei){
+            // [10, /*20, 30, 50,*/ 100, /*120, 200, 300, */500, 1000, /*1500, 2000, 5000,*/ 10000].forEach(function(wei){
+            [10].forEach(function(wei){
                 it('should mint given amount of tokens to proper addresses when spending (' + wei + ') wei while already (' + purchasedTokensRaised.toString() + ') were purchased before', async function(){
                     await crowdsale.send(purchasedTokensRaised, {from: someOtherUserWallet});
                     await crowdsale.purchasedTokensRaised();

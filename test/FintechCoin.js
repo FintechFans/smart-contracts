@@ -2,6 +2,7 @@
 'use strict';
 
 import EVMThrow from './helpers/EVMThrow';
+import EVMRevert from './helpers/EVMRevert';
 
 const BigNumber = web3.BigNumber;
 
@@ -48,7 +49,7 @@ contract('FintechCoin', function(accounts) {
             let account_two_starting_balance = await token.balanceOf(account_two);
 
             await token.finishMinting();
-            await token.mint(account_two, amount, {from: account_one}).should.be.rejectedWith(EVMThrow);
+            await token.mint(account_two, amount, {from: account_one}).should.be.rejectedWith(EVMRevert);
             let account_two_ending_balance = await token.balanceOf(account_two);
 
             account_two_ending_balance.toNumber().should.be.equal(account_two_starting_balance.toNumber());

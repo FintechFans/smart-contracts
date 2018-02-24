@@ -5,6 +5,7 @@ import {advanceBlock} from './helpers/advanceToBlock';
 import {increaseTimeTo, duration} from './helpers/increaseTime';
 import latestTime from './helpers/latestTime';
 import EVMThrow from './helpers/EVMThrow';
+import EVMRevert from './helpers/EVMRevert';
 
 const BigNumber = web3.BigNumber;
 
@@ -62,13 +63,13 @@ contract('ApprovedBurnableToken', function (accounts) {
     it('burner cannot burn more tokens than your balance', async function () {
         await token.approve(accounts[1], 1, {from: accounts[0]});
         await token.burnFrom(accounts[0], 2000, { from: accounts[1] })
-            .should.be.rejectedWith(EVMThrow);
+            .should.be.rejectedWith(EVMRevert);
     });
 
     it('burner cannot burn more tokens than you allowed them', async function () {
         await token.approve(accounts[1], 1, {from: accounts[0]});
         await token.burnFrom(accounts[0], 2, { from: accounts[1] })
-            .should.be.rejectedWith(EVMThrow);
+            .should.be.rejectedWith(EVMRevert);
     });
 
     // TODO Test with Smart Contract that burns for you. (Placeholder for the Marketplace)
