@@ -3,14 +3,19 @@
 This repository contains the Smart Contracts that are in use by the FintechFans Marketplace and the Decentralized Crowdsale leading up to it.
 
 The Smart Contract source code can be found in `contracts/`.
-The `flatten_contracts.sh` script is used to combine them together into the `FintechFansCrowdsaleFlattened.sol` file, which is the Solidity file that is deployed on the blockchain.
+The `flatten_fintech_coin.sh` and `flatten_the_fintech_fans_crowdsale.sh` scripts are used to combine them together into the `flattened_contracts/TheFintechCoin.sol` and `flattened_contracts/TheFintechFansCrowdsaleFlattened.sol` file, which is the Solidity file that is deployed on the blockchain.
 
-The reason to combine everything together in one file like this, is to be able to upload it to Etherscan for source code verification.
+The reason to combine everything together in flat files like this, is to be able to upload it to Etherscan for source code verification.
 
+## Testing
 
+Testing is done using Truffle, by running `yarn truffle test`. This does expect that a local testing  'blockchain' is running, wich can be started (with enough Ether in the test accounts to allow for the test transactions to all succeed) using `yarn run rpc` .
 
-## Technical Details
+## Building + Deploying
 
+Because it is difficult to verify a contract on EtherScan that has parameters you can fill in, the crowdsale-contract that will be deployed is `TheFintechFansCrowdsale`, which is a very simple wrapper of `FintechFansCrowdsale`, which fills in the arguments that the FintechFansCrowdsale contract requires.
+
+The exact building and deployment process can be found and tracked in `FintechFansCrowdsale deployment steps.ods`.
 
 
 ### Crowdsale Procedure
